@@ -888,8 +888,10 @@ void EditWin::FromClipboard() //!Undo
 				if (cursor.pos < str.len)
 				{
 					text.Get(cursor.line+1).Set(str.Get()+cursor.pos, str.len - cursor.pos);
-					str.len = cursor.pos;
+					//был косяк, исправлен
 					undoBlock->AddLine(cursor.line+1, line.flags,  str.Get()+cursor.pos, str.len - cursor.pos);
+					undoBlock->DelText(cursor.line, cursor.pos, str.Get() + cursor.pos, str.len - cursor.pos);
+					str.len = cursor.pos;
 				} else 
 					undoBlock->AddLine(cursor.line+1, line.flags,  0, 0);
 

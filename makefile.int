@@ -10,11 +10,11 @@ LIBS = -L /usr/local/lib -L /usr/X11R6/lib -l stdc++  -l  X11 -l pthread $(LIBSM
 
 HW = wal/wal_tmpls.h wal/wal.h wal/wal_sys_api.h
 HS = swl/swl.h swl/swl_internal.h swl/swl_layout.h swl/swl_winbase.h swl/swl_wincore.h swl/swl_wincore_internal.h 
-HN = libconf.h nc.h ncwin.h panel.h ncdialogs.h  terminal.h termwin.h ncedit.h nchistory.h shell.h \
+HN = libconf.h nc.h ncwin.h panel.h ncdialogs.h  terminal.h termwin.h ncedit.h shell.h \
  operthread.h operwin.h vfs.h vfspath.h vfs-smb.h vfs-uri.h fileopers.h mfile.h eloadsave.h smblogon.h ext-app.h bfile.h \
  wcm-config.h panel_list.h tcp_sock.h vfs-ftp.h ftplogon.h charsetdlg.h vfs-sftp.h sftpdlg.h color-style.h filesearch.h help.h ux_util.h \
  strconfig.h shortcuts.h fontdlg.h ncfonts.h shl.h toolbar.h ncview.h search-dlg.h search-tools.h shell-tools.h t-emulator.h dircalc.h ltext.h \
- dlg-ctrl-l.h
+ dlg-ctrl-l.h nceditline.h
 
 OBJS =  wal_tmpls.o \
 	wal.o\
@@ -46,7 +46,6 @@ OBJS =  wal_tmpls.o \
 	termwin.o \
 	ncdialogs.o \
 	terminal.o \
-	nchistory.o \
 	shell.o \
 	panel_list.o \
 	panel.o \
@@ -79,7 +78,8 @@ OBJS =  wal_tmpls.o \
 	t-emulator.o \
 	dircalc.o \
 	ltext.o \
-	dlg-ctrl-l.o
+	dlg-ctrl-l.o\
+	nceditline.o
 
 GC=  gcc
 
@@ -201,12 +201,8 @@ vfs-sftp.o: $(HW) $(HS) $(HN) vfs-sftp.cpp
 vfs-sftp2.o: $(HW) $(HS) $(HN) vfs-sftp2.cpp 
 	$(CC) -c $(CFLAGS) vfs-sftp2.cpp 
 		
-nchistory.o: $(HW) $(HS) $(HN) nchistory.cpp 
-	$(CC) -c $(CFLAGS) nchistory.cpp 
-		
 fileopers.o: $(HW) $(HS) $(HN) fileopers.cpp 
 	$(CC) -c $(CFLAGS) fileopers.cpp 
-	
 	
 ncdialogs.o: $(HW) $(HS) $(HN) ncdialogs.cpp 
 	$(CC) -c $(CFLAGS) ncdialogs.cpp 
@@ -219,6 +215,9 @@ panel.o: $(HW) $(HS) $(HN) panel.cpp
 
 ncedit.o: $(HW) $(HS) $(HN) ncedit.cpp 
 	$(CC) -c $(CFLAGS) ncedit.cpp 
+	
+nceditline.o: $(HW) $(HS) $(HN) nceditline.cpp 
+	$(CC) -c $(CFLAGS) nceditline.cpp 
 	
 ncview.o: $(HW) $(HS) $(HN) ncview.cpp 
 	$(CC) -c $(CFLAGS) ncview.cpp 

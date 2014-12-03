@@ -4,6 +4,7 @@
 #include "operthread.h" //для carray_cat
 #include "charsetdlg.h"
 #include "ltext.h"
+#include "nceditline.h"
 
 
 class FtpLogonDialog: public NCVertDialog {
@@ -16,9 +17,9 @@ public:
 	int charset;
 	StaticLine charsetText, charsetIdText;
 	
-	EditLine serverEdit;
+	NCEditLine serverEdit;
 	SButton  anonymousButton;
-	EditLine userEdit;
+	NCEditLine userEdit;
 	EditLine passwordEdit;
 	EditLine portEdit;
 	Button charsetButton;
@@ -47,8 +48,8 @@ FtpLogonDialog::FtpLogonDialog(NCDialogParent *parent, FSFtpParam &params)
 	charset(params.charset),
 	charsetIdText(0, this, utf8_to_unicode("***************").ptr()), //чтоб место забить
 		
-	serverEdit	(0, this, 0, 0, 16),
-	userEdit	(0, this, 0, 0, 16),
+	serverEdit	("ftp-server", 0, this, 0, 16, 5, false, true, false), //(0, this, 0, 0, 16),
+	userEdit	("ftp-user", 0, this, 0, 16, 5, false, true, false),//(0, this, 0, 0, 16),
 	passwordEdit	(0, this, 0, 0, 16),
 	portEdit	(0, this, 0, 0, 16),
 	
@@ -169,7 +170,11 @@ bool GetFtpLogon(NCDialogParent *parent, FSFtpParam &params)
 	if (dlg.DoModal() == CMD_OK)
 	{
 		params.server	= dlg.serverEdit.GetText().ptr();
+		dlg.serverEdit.Commit();
+
 		params.user	= dlg.userEdit.GetText().ptr();
+		dlg.userEdit.Commit();
+
 		params.pass	= dlg.passwordEdit.GetText().ptr();
 		params.port	= atoi(unicode_to_utf8(dlg.portEdit.GetText().ptr()).ptr());
 		params.anonymous = dlg.anonymousButton.IsSet(); 

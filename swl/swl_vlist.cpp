@@ -27,8 +27,8 @@ VListWin::VListWin(WTYPE wt, unsigned hints, int nId, Win *parent, SelectType st
 	pageSize(1),
 	current(-1),
 	captureDelta(0),
-	borderColor(0),
-	bgColor(0x808080),
+//	borderColor(0),
+//	bgColor(0x808080),
 	vScroll(0, this,true,true),
 	hScroll(0, this,false),
 	layout(4,4)
@@ -164,9 +164,10 @@ bool VListWin::Command(int id, int subId, Win *win, void *data)
 
 void VListWin::Paint(GC &gc, const crect &paintRect)
 {
+	unsigned bgColor = UiGetColor(uiBackground,0,0,0x808080);
 	crect rect = ClientRect();
 	switch (borderType) {
-	case SINGLE_BORDER: DrawBorder(gc,rect, InFocus() ? 0x00C000 : borderColor); break;
+	case SINGLE_BORDER: DrawBorder(gc,rect, UiGetColor(uiFrameColor, 0, 0, 0x0)); break;
 	case BORDER_3D: 
 		if (UiGetBool(ui3d, 0, 0, true)) 
 			Draw3DButtonW2(gc,rect, bgColor, false); 

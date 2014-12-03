@@ -7,7 +7,6 @@
 #define NCDIALOGS_H
 
 #include "swl.h"
-#include "nchistory.h"
 #include "operwin.h"
 
 using namespace wal;
@@ -110,13 +109,12 @@ int KillCmdDialog(NCDialogParent *parent, const unicode_t *cmd);
 
 carray<unicode_t> InputStringDialog(NCDialogParent *parent, const unicode_t *message, const unicode_t *str = 0);
 
+carray<unicode_t> InputStringDialog_H(const char *histGroup, NCDialogParent *parent, const unicode_t *message, const unicode_t *str = 0);
 
 class CmdHistoryDialog: public NCDialog {
-	NCHistory &_history;
-	int _selected;
 	TextList _list;
 public:
-	CmdHistoryDialog(int nId, NCDialogParent *parent, NCHistory &history);
+	CmdHistoryDialog(int nId, NCDialogParent *parent, const char * histGroup);
 	const unicode_t* Get(){ return _list.GetCurrentString(); }
 	virtual bool Command(int id, int subId, Win *win, void *data);
 	virtual ~CmdHistoryDialog();

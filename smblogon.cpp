@@ -3,6 +3,7 @@
 #include "ncdialogs.h"
 #include "string-util.h" //для carray_cat
 #include "ltext.h"
+#include "nceditline.h"
 
 #ifdef LIBSMBCLIENT_EXIST
 
@@ -18,9 +19,9 @@ public:
 	StaticLine userText; 
 	StaticLine passwordText; 
 	
-	EditLine serverEdit;
-	EditLine domainEdit;
-	EditLine userEdit;
+	NCEditLine serverEdit;
+	NCEditLine domainEdit;
+	NCEditLine userEdit;
 	EditLine passwordEdit;
 
 	SmbLogonDialog(NCDialogParent *parent, FSSmbParam &params, bool enterServer);
@@ -38,9 +39,9 @@ SmbLogonDialog::SmbLogonDialog(NCDialogParent *parent, FSSmbParam &params, bool 
 	domainText(0, this, utf8_to_unicode( _LT("Domain:") ).ptr()),
 	userText(0, this, utf8_to_unicode( _LT("Login:") ).ptr()),
 	passwordText(0, this, utf8_to_unicode( _LT("Password:") ).ptr()),
-	serverEdit	(0, this, 0, 0, 16),
-	domainEdit	(0, this, 0, 0, 16),
-	userEdit	(0, this, 0, 0, 16),
+	serverEdit	("smb-server", 0, this, 0, 16, 5, false, true, false), //(0, this, 0, 0, 16),
+	domainEdit	("smb-domain", 0, this, 0, 16, 5, false, true, false), //(0, this, 0, 0, 16),
+	userEdit	("smb-user", 0, this, 0, 16, 5, false, true, false), //(0, this, 0, 0, 16),
 	passwordEdit	(0, this, 0, 0, 16)
 {
 
@@ -103,6 +104,11 @@ bool GetSmbLogon(NCDialogParent *parent, FSSmbParam &params, bool enterServer)
 		Copy(params.user,	unicode_to_utf8(dlg.userEdit.GetText().ptr()).ptr() , sizeof(params.user));
 		Copy(params.pass,	unicode_to_utf8(dlg.passwordEdit.GetText().ptr()).ptr() , sizeof(params.pass));
 		params.isSet = true;
+		
+		dlg.serverEdit.Commit();
+		dlg.domainEdit.Commit();
+		dlg.userEdit.Commit();
+		
 		return true;
 	}
 	return false;

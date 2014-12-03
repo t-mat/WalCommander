@@ -32,6 +32,8 @@ struct WcmConfig {
 	bool systemAskOpenExec;
 	bool systemEscPanel;
 	carray<char> systemLang; //"+" - auto "-" -internal eng. 
+	bool systemSaveHistory;
+	bool systemAutoComplete;
 	
 	bool showToolBar;
 	bool showButtonBar;

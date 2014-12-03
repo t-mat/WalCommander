@@ -153,6 +153,7 @@ public:
 		READONLY = 2
 	};
 private:
+	bool _use_alt_symbols;
 	unsigned _flags;
 	bool RO() const { return (_flags & READONLY) != 0; }
 	EditBuf text;
@@ -189,6 +190,7 @@ public:
 	void SetPasswordMode(bool enable = true){ passwordMode = enable; Invalidate(); }
 	virtual int UiGetClassId();
 	virtual void OnChangeStyles();
+	void EnableAltSymbols(bool e){ _use_alt_symbols = e; }
 	virtual ~EditLine();
 };
 
@@ -308,8 +310,8 @@ private:
 	int pageSize;
 	int captureDelta;
 
-	unsigned borderColor; //used only for SINGLE_BORDER
-	unsigned bgColor; //for 3d border and scroll block
+	//unsigned borderColor; //used only for SINGLE_BORDER
+	//unsigned bgColor; //for 3d border and scroll block
 
 	CaptureSD captureSD;
 
@@ -525,7 +527,8 @@ public:
 	enum FLAGS {
 		MODE_UP  = 1,
 		READONLY = 2,
-		FRAME3D  = 4
+		FRAME3D  = 4,
+		NOFOCUSFRAME = 8
 	};
 private:
 	unsigned _flags;
@@ -543,8 +546,11 @@ private:
 	int _rows;
 	int _current;
 
+protected:
 	void OpenBox();
+	void RefreshBox();
 	void CloseBox();
+	bool IsEditLine(Win *w) const { return w == &_edit; }
 
 public:
 	ComboBox(int nId, Win *parent, int cols, int rows, unsigned flags = 0,  crect *rect = 0);
@@ -560,11 +566,22 @@ public:
 	void Append(const char *text, void *data = 0);
 
 	carray<unicode_t> GetText();
+	void SetText(const unicode_t *txt, bool mark = false);
+	void Insert(unicode_t t);
+	void Insert(const unicode_t *txt);
+	int GetCursorPos(){ return _edit.GetCursorPos(); }
+	void SetCursorPos(int c, bool mark = false){ _edit.SetCursorPos(c, mark); }
+
+
 	int Count() const { return _list.count(); }
 	int Current() const { return _current; }
 	const unicode_t* ItemText(int n);
+	
 	void * ItemData(int n);
 	void MoveCurrent(int n);
+	bool IsBoxOpened(){ return _box.ptr()!=0; }
+	virtual bool OnOpenBox();
+	virtual void OnCloseBox();
 	
 	virtual ~ComboBox();
 };

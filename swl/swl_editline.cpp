@@ -209,6 +209,7 @@ bool EditLine::NeedDrawFocus()
 
 EditLine::EditLine(int nId, Win *parent, const crect *rect, const unicode_t *txt, int chars, bool frame, unsigned flags)
 :	Win(Win::WT_CHILD,Win::WH_TABFOCUS|WH_CLICKFOCUS,parent,rect, nId), 
+	_use_alt_symbols(false),
 	_flags(flags),
 	text(txt),
 	_chars(chars>0 ? chars : 10),
@@ -507,6 +508,7 @@ bool EditLine::EventKey(cevent_key* pEvent)
 	{
 		bool shift = (pEvent->Mod() & KM_SHIFT) !=0;
 		bool ctrl = (pEvent->Mod() & KM_CTRL) !=0;
+		bool alt = (pEvent->Mod() & KM_ALT) !=0;
 		
 		if (ctrl) {
 			switch (pEvent->Key()) {
@@ -586,7 +588,7 @@ bool EditLine::EventKey(cevent_key* pEvent)
 		default:
 			{
 				wchar_t c = pEvent->Char();
-				if (c && c >= 0x20) 
+				if (c && c >= 0x20 && (!alt || _use_alt_symbols) ) 
 				{
 					if ( RO() ) return false;
 					text.Insert(c);

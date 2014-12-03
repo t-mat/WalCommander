@@ -61,6 +61,46 @@ void SetCommonSearchParams(const unicode_t *searchString, bool sens)
 	}
 }
 
+
+#define CMD_HISTORY_GROUP "cmd"
+
+void CmdHistoryWrap::Reset(){ _list = 0; _current = -1; };
+
+void CmdHistoryWrap::LoadList()
+{
+	if (_list.ptr()) return;
+	_current = -1;
+	cptr<HistCollect> pp = new HistCollect;
+	HistCollect *h =  HistGetList(CMD_HISTORY_GROUP);
+	if (h) {
+		int n = h->count();
+		for (int i = 0; i<n; i++)
+			if (h->get(i).ptr())
+				pp->append(new_unicode_str(h->get(i).ptr()));
+	}
+	_list = pp;
+}
+
+const unicode_t *CmdHistoryWrap::Prev()
+{
+	LoadList();
+	if (!_list.ptr()) return 0;
+
+	if (_current + 1 < _list->count())
+		_current++;
+
+	return _current >=0 && _current<_list->count() ? _list->get(_current).ptr() : 0;
+}
+
+const unicode_t *CmdHistoryWrap::Next()
+{
+	LoadList();
+	if (!_list.ptr()) return 0;
+	if (_current < 0) return 0;
+	_current--;
+	return _current >=0 && _current<_list->count() ? _list->get(_current).ptr() : 0;
+}
+
 static crect acWinRect(0,0,850,500);
 
 static unicode_t panelButtonStr[] = {'*',0};
@@ -116,7 +156,8 @@ NCWin::NCWin()
 	_leftPanel(this, &wcmConfig.panelModeLeft),
 	_rightPanel(this, &wcmConfig.panelModeRight),
 	
-	_edit(uiCommandLine, this, 0, 0, 10, false),
+	//_edit(uiCommandLine, this, 0, 0, 10, false),
+	_edit(CMD_HISTORY_GROUP, uiCommandLine, this, 0, 50, 7, true, false, true),
 	_editPref(this),
 	_panel(&_leftPanel),
 	_menu(0, this),
@@ -632,14 +673,14 @@ void NCWin::Home(PanelWin *p)
 void NCWin::StartExecute(const unicode_t *cmd, FS *fs,  FSPath &path)
 {
 #ifdef _WIN32
-	_history.Put(cmd);
+	_history.Reset();
 
 	if (_terminal.Execute(this, 1, cmd, 0, fs->Uri(path).GetUnicode()))
 		SetMode(TERMINAL);
 
 
 #else
-	_history.Put(cmd);
+	_history.Reset();
 	const unicode_t *pref = _editPref.Get();
 	static unicode_t empty[]={0};
 	if (!pref) pref = empty;
@@ -935,7 +976,7 @@ void NCWin::CreateDirectory()
 	if (_mode != PANEL) return;
 	
 	try {
-		carray<unicode_t> dir = InputStringDialog(this, utf8_to_unicode(_LT("Create new directory")).ptr());
+		carray<unicode_t> dir = InputStringDialog_H("mkdir", this, utf8_to_unicode(_LT("Create new directory")).ptr());
 		if (!dir.ptr())	return;
 		
 		FSPtr checkFS[2];
@@ -1047,7 +1088,7 @@ void NCWin::Edit(bool enterFileName)
 	
 		if (enterFileName) {
 			static carray<unicode_t> savedUri;
-			carray<unicode_t> uri = InputStringDialog(this, utf8_to_unicode(_LT("File to edit")).ptr(), savedUri.ptr());
+			carray<unicode_t> uri = InputStringDialog_H("edit-open", this, utf8_to_unicode(_LT("File to edit")).ptr(), savedUri.ptr());
 			if (!uri.ptr()) return;
 			
 			savedUri = new_unicode_str(uri.ptr());
@@ -1152,7 +1193,7 @@ void NCWin::CtrlL()
 void NCWin::HistoryDialog()
 {
 	if (_mode != PANEL) return;
-	CmdHistoryDialog dlg(0, this, _history);
+	CmdHistoryDialog dlg(0, this, CMD_HISTORY_GROUP);
 	int r = dlg.DoModal();
 	if (r!=CMD_OK) return;
 	const unicode_t *s = dlg.Get();
@@ -1228,7 +1269,7 @@ void NCWin::Copy(bool shift)
 
 	FSString uri = (_panel == &_leftPanel) ? _rightPanel.UriOfDir() : _leftPanel.UriOfDir();
 	
-	carray<unicode_t> str =  InputStringDialog(this, utf8_to_unicode(_LT("Copy")).ptr(), 
+	carray<unicode_t> str =  InputStringDialog_H("copy", this, utf8_to_unicode(_LT("Copy")).ptr(), 
 		shift ? _panel->GetCurrentFileName() : uri.GetUnicode());
 
 	if (!str.ptr() || !str[0]) return;
@@ -1284,7 +1325,7 @@ void NCWin::Move(bool shift)
 
 	FSString uri = (_panel == &_leftPanel) ? _rightPanel.UriOfDir() : _leftPanel.UriOfDir();
 	
-	carray<unicode_t> str =  InputStringDialog(this, utf8_to_unicode(_LT("Move")).ptr(), 
+	carray<unicode_t> str =  InputStringDialog_H("copy",this, utf8_to_unicode(_LT("Move")).ptr(), 
 		shift ? _panel->GetCurrentFileName() : uri.GetUnicode());
 
 	if (!str.ptr() || !str[0]) return;
@@ -1329,7 +1370,7 @@ void NCWin::Move(bool shift)
 void NCWin::Mark(bool enable)
 {
 	if (_mode != PANEL) return;
-	carray<unicode_t> str =  InputStringDialog(this, utf8_to_unicode(_LT(enable ? "Select":"Deselect")).ptr(), utf8_to_unicode("*").ptr());
+	carray<unicode_t> str =  InputStringDialog_H("mark", this, utf8_to_unicode(_LT(enable ? "Select":"Deselect")).ptr(), utf8_to_unicode("*").ptr());
 	if (!str.ptr() || !str[0]) return;
 	_panel->Mark(str.ptr(), enable);
 }
@@ -1406,7 +1447,7 @@ bool NCWin::EditSave( bool saveAs)
 	
 		if (saveAs) {
 			static carray<unicode_t> savedUri;
-			carray<unicode_t> uri = InputStringDialog(this, utf8_to_unicode(_LT("Save file as ...")).ptr(), savedUri.ptr());
+			carray<unicode_t> uri = InputStringDialog_H("save-as", this, utf8_to_unicode(_LT("Save file as ...")).ptr(), savedUri.ptr());
 			if (!uri.ptr()) return false;
 			
 			savedUri = new_unicode_str(uri.ptr());
@@ -1531,7 +1572,7 @@ void NCWin::ViewCharsetTable()
 
 void NCWin::ExecNoTerminalProcess(unicode_t *p)
 {
-	_history.Put(p);
+//	_history.Put(p);
 	const unicode_t *pref = _editPref.Get();
 	static unicode_t empty[]={0};
 	if (!pref) pref = empty;
@@ -1692,6 +1733,8 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 	if (_mode == PANEL && _edit.InFocus())
 	{
 		if (!pressed) return false;
+
+		if (_edit.IsBoxOpened() && pEvent->Key()!= VK_RETURN) return false;
 
 
 		if (pEvent->Key() == VK_O && (pEvent->Mod() & KM_CTRL))
@@ -1868,15 +1911,15 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 					while (*p == ' ') p++;
 					if (*p)
 					{
-
+						_edit.Commit();
 						_edit.Clear();
+						_history.Reset();
 #ifdef _WIN32
 						if ( (p[0]=='c' || p[0]=='C') && (p[1]=='d' || p[1]=='D') && (!p[2] || p[2]==' ')) 
 #else
 						if (p[0]=='c' && p[1]=='d' && (!p[2] || p[2]==' ')) 
 #endif
 						{ //change dir
-							_history.Put(p);
 							p += 2;
 							while (*p==' ') p++;
 								
@@ -1944,7 +1987,7 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 #ifndef _WIN32
 							if (p[0] == '&' || shift) //запуск без терминала
 							{
-								_history.Put(p);
+								//_history.Put(p);
 								if (p[0] == '&') p++;
 								ExecNoTerminalProcess(p);
 								break;

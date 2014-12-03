@@ -541,9 +541,10 @@ WcmConfig::WcmConfig()
 :	systemAskOpenExec(true),
 	systemEscPanel(false),
 	systemLang(new_char_str("+")),
+	systemSaveHistory(true),
+	systemAutoComplete(true),
 	showToolBar(true),
 	showButtonBar(true),
-	//whiteStyle(false),
 
 	panelShowHiddenFiles(true),
 	panelShowIcons(true),
@@ -554,8 +555,6 @@ WcmConfig::WcmConfig()
 	true
 #endif		
 	),
-	//panelColorMode(0),
-	
 	panelModeLeft(0),
 	panelModeRight(0),
 		
@@ -576,10 +575,11 @@ WcmConfig::WcmConfig()
 
 	MapBool(sectionSystem, "esc_panel", &systemEscPanel, systemEscPanel);
 	MapStr(sectionSystem,  "lang", &systemLang);
+	MapBool(sectionSystem, "save_history", &systemSaveHistory, systemSaveHistory);
+	MapBool(sectionSystem, "save_auto_complete", &systemAutoComplete, systemAutoComplete);
 	
 	MapBool(sectionSystem, "show_toolbar", &showToolBar, showToolBar);
 	MapBool(sectionSystem, "show_buttonbar", &showButtonBar, showButtonBar);
-	//MapBool(sectionSystem, "white", &whiteStyle, whiteStyle);
 
 	MapBool(sectionPanel, "show_hidden_files",	&panelShowHiddenFiles, panelShowHiddenFiles);
 	MapBool(sectionPanel, "show_icons",		&panelShowIcons, panelShowIcons);
@@ -1287,6 +1287,8 @@ public:
 
 	SButton  askOpenExecButton;
 	SButton  escPanelButton;
+	SButton  saveHistoryButton;
+	SButton  autoCompleteButton;
 	HKStaticLine langStatic;
 	ComboBox langBox;
 
@@ -1311,6 +1313,8 @@ SysOptDialog::SysOptDialog(NCDialogParent *parent)
 
 	,askOpenExecButton(0, this, utf8_to_unicode( _LT("&Ask user if Exec/Open conflict") ).ptr(), 0, wcmConfig.systemAskOpenExec)
 	,escPanelButton(0, this, utf8_to_unicode( _LT("Enable &ESC key to show/hide panels") ).ptr(), 0, wcmConfig.systemEscPanel)
+	,saveHistoryButton(0, this, utf8_to_unicode( _LT("Save &history to disk") ).ptr(), 0, wcmConfig.systemSaveHistory)
+	,autoCompleteButton(0, this, utf8_to_unicode( _LT("Enable &auto complete") ).ptr(), 0, wcmConfig.systemAutoComplete)
 	,langStatic(0, this, utf8_to_unicode( _LT("&Language:") ).ptr())
 	,langBox(0, this, 10, 5, ComboBox::READONLY)
 {
@@ -1319,9 +1323,11 @@ SysOptDialog::SysOptDialog(NCDialogParent *parent)
 	iL.AddWin(&askOpenExecButton,	0, 0, 0, 1); askOpenExecButton.Enable();  askOpenExecButton.Show(); 
 #endif
 	iL.AddWin(&escPanelButton,	1, 0, 1, 1); escPanelButton.Enable();  escPanelButton.Show(); 
-	iL.AddWin(&langStatic, 		3, 0);	langStatic.Enable();	langStatic.Show();
+	iL.AddWin(&saveHistoryButton,	2, 0, 2, 1); saveHistoryButton.Enable();  saveHistoryButton.Show(); 
+	iL.AddWin(&autoCompleteButton,	3, 0, 3, 1); autoCompleteButton.Enable();  autoCompleteButton.Show(); 
+	iL.AddWin(&langStatic, 		4, 0);	langStatic.Enable();	langStatic.Show();
 	langStatic.SetControlWin(&langBox);
-	iL.AddWin(&langBox,		3, 1);	langBox.Enable();	langBox.Show();
+	iL.AddWin(&langBox,		4, 1);	langBox.Enable();	langBox.Show();
 	iL.SetColGrowth(2);
 	
 	AddLayout(&iL);
@@ -1332,6 +1338,8 @@ SysOptDialog::SysOptDialog(NCDialogParent *parent)
 	order.append(&askOpenExecButton);
 #endif
 	order.append(&escPanelButton);
+	order.append(&saveHistoryButton);
+	order.append(&autoCompleteButton);
 	order.append(&langBox);
 
 	SetPosition();
@@ -1394,6 +1402,8 @@ bool DoSystemConfigDialog(NCDialogParent *parent)
 
 		wcmConfig.systemAskOpenExec = dlg.askOpenExecButton.IsSet(); 
 		wcmConfig.systemEscPanel = dlg.escPanelButton.IsSet();
+		wcmConfig.systemSaveHistory = dlg.saveHistoryButton.IsSet();
+		wcmConfig.systemAutoComplete = dlg.autoCompleteButton.IsSet();
 		const char *s = wcmConfig.systemLang.ptr();
 
 		if (!s) s = "+";

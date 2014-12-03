@@ -1,10 +1,16 @@
 * { mode3d:0 }
 * {color: 0; background: 0xC0C0C0;; focus-frame-color : 0x00A000; button-color: 0xC0C0C0;; hotkey-color: 0xD0 }
 
-ComboBox, ComboBox EditLine {color:0;  background:0xFFFFFF }
+ComboBox, ComboBox EditLine {color:0;  background:0xFFFFFF; frame-color: 0xC0C0C0; focus-frame-color:0;}
 ComboBox EditLine:parent-focus {color:0xFFFFFF;  background:0x800000 }
 ComboBox * @item {color: 0; background: 0xFFFFFF; }
 ComboBox * @item:current-item {color: 0xFFFFFF; background: 0x800000; }
+
+NCEditLine, NCEditLine EditLine:!enabled {color:0;  background:0xD8E9EC; frame-color: 0xC0C0C0; focus-frame-color:0; }
+NCEditLine EditLine:parent-focus:enabled {color: 0; background: 0x909000; mark-color: 0xFFFFFF; mark-background : 0x800000; }
+NCEditLine *@item {color: 0; background: 0xFFFFFF; }
+NCEditLine *@item:current-item {color: 0xFFFFFF; background: 0x800000; }
+
 
 #variable { color : 0x800000 }
 #value { color : 0x9000 }
@@ -56,7 +62,11 @@ Panel:oper-state { summary-color: 0xFF; }
 ButtonWin { color: 0xFFFFFF; background: 0; }
 ButtonWin Button { color: 0; background: 0xB0B000; }
 
-EditLine#command-line {color: 0xFFFFFF; background: 0; mark-color: 0xFFFFFF; mark-background : 0x800000; }
+#command-line EditLine {color: 0xFFFFFF; background: 0; mark-color: 0xFFFFFF; mark-background : 0x800000; }
+#command-line * {color: 0xFFFFFF; background: 0x606000; frame-color: 0xFFFFFF; } 
+#command-line * @item:current-item {color: 0xFFFFFF; background: 0; frame-color: 0;  }
+#command-line {color: 0xFFFFFF; background: 0x606000; }
+//EditLine#command-line {color: 0xFFFFFF; background: 0; mark-color: 0xFFFFFF; mark-background : 0x800000; }
 
 ToolTip { color: 0; background: 0x80FFFF; }
 

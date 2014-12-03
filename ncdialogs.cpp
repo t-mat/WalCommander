@@ -9,6 +9,8 @@
 #include "wcm-config.h"
 #include "string-util.h"
 #include "ltext.h"
+#include "nceditline.h"
+
 
 bool createDialogAsChild //= false; 
 			 = true;
@@ -572,6 +574,45 @@ carray<unicode_t> InputStringDialog(NCDialogParent *parent, const unicode_t *mes
 	return ret;
 }
 
+class InputStrDialog_H: public NCVertDialog {
+public:
+	NCEditLine edit;
+
+	InputStrDialog_H(const char *histGroup, NCDialogParent *parent, const unicode_t *message, const unicode_t *str)
+	:	NCVertDialog(::createDialogAsChild, 0, parent, message, bListOkCancel), // 0xD8E9EC, 0),
+		edit(histGroup, 0, (Win*)this, 0, 50, 7, false, true, true, 0)
+	{
+		edit.Enable();
+		edit.Show();
+		AddWin(&edit);
+		order.append(&edit);
+		if (str) edit.SetText(str, true);
+		edit.SetFocus();
+		SetPosition();
+	}
+	
+	carray<unicode_t> GetText(){ return edit.GetText(); };
+		
+	virtual ~InputStrDialog_H();
+};
+
+InputStrDialog_H::~InputStrDialog_H(){}
+
+
+carray<unicode_t> InputStringDialog_H(const char *histGroup, NCDialogParent *parent, const unicode_t *message, const unicode_t *str)
+{
+	InputStrDialog_H d(histGroup, parent, message, str);
+	
+	d.SetEnterCmd(CMD_OK);
+	int r = d.DoModal();
+	carray<unicode_t> ret;
+	if (r != CMD_OK ) return ret;
+	ret = d.GetText();
+	d.edit.Commit();
+	return ret;
+}
+
+
 int uiKillCmdDialog = GetUiID("KillCmdDialog");
 
 int KillCmdDialog(NCDialogParent *parent, const unicode_t *cmd)
@@ -596,13 +637,24 @@ int KillCmdDialog(NCDialogParent *parent, const unicode_t *cmd)
 
 ////////////////////////////////////////////////////////////////////////////
 
-CmdHistoryDialog::CmdHistoryDialog(int nId, NCDialogParent *parent, NCHistory &history)
+CmdHistoryDialog::CmdHistoryDialog(int nId, NCDialogParent *parent, const char *histGroup)
 :	NCDialog(createDialogAsChild, nId, parent, utf8_to_unicode(" History ").ptr(), bListOkCancel), 
-	_history(history), 
-	_selected(history.Count()-1),
+	//_history(history), 
+	//_selected(0),
 	_list(Win::WT_CHILD,Win::WH_TABFOCUS|WH_CLICKFOCUS, 0, this, VListWin::SINGLE_SELECT, VListWin::BORDER_3D, 0)
 { 
-	for (int i = _history.Count()-1; i>=0; i--) _list.Append(_history[i]); 
+	HistCollect *p = HistGetList(histGroup);
+	int count = 0;
+
+	if (p) 
+	{
+		for (int i = p->count()-1; i>=0; i--) 
+			if (p->get(i).ptr()) {
+				_list.Append(p->get(i).ptr()); 
+				count++;
+			}
+	}
+
 	_list.Enable();
 	_list.Show();
 	_list.SetFocus();
@@ -611,11 +663,10 @@ CmdHistoryDialog::CmdHistoryDialog(int nId, NCDialogParent *parent, NCHistory &h
 	_list.SetHeightRange(h); //in characters
 	_list.SetWidthRange(w); //in characters
 	
-	if (_history.Count()>0) {
+	if (count > 0) {
 		_list.MoveFirst(0);
-		_list.MoveCurrent(_history.Count()-1);
+		_list.MoveCurrent(count);
 	}
-
 		
 	AddWin(&_list);
 	SetEnterCmd(CMD_OK);

@@ -2,7 +2,7 @@
 #define COLOR_STYLE_H
 #include <swl.h>
 
-#define COLORSTYLE_VERSION "001"
+#define COLORSTYLE_VERSION "002"
 
 extern char *currentColorStyleName;
 

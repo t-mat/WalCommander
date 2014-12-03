@@ -18,16 +18,13 @@ int ComboBox::UiGetClassId()
 }
 
 
-void ComboBox::OnChangeStyles()
-{
-}
-
 void ComboBox::MoveCurrent(int n)
 {
 	int saved = _current;
 
 	if (n < 0) {
-		_edit.Clear();
+		if (_flags & READONLY) 
+			_edit.Clear();
 		_current = -1;
 		if (_box.ptr()) 
 			_box->MoveCurrent(-1);
@@ -42,6 +39,14 @@ void ComboBox::MoveCurrent(int n)
 	if (saved != _current)
 		Command(CMD_ITEM_CHANGED, _current, this, 0);
 }
+
+void ComboBox::OnChangeStyles()
+{
+	RecalcLayouts();
+	SetLSize(_lo.GetLSize());
+//	Win::OnChangeStyles();
+}
+
 
 ComboBox::ComboBox(int nId, Win *parent, int cols, int rows, unsigned flags,  crect *rect)
 :	Win(Win::WT_CHILD, WH_CLICKFOCUS | WH_TABFOCUS, parent, rect, nId),
@@ -58,7 +63,7 @@ ComboBox::ComboBox(int nId, Win *parent, int cols, int rows, unsigned flags,  cr
 		_edit.Show(SHOW_INACTIVE);
 	_lo.AddRect(&_buttonRect, 1, 2);
 	_lo.ColSet(2, CB_BUTTONWIDTH);
-	int fw = (_flags & FRAME3D)!=0 ? 3 : 1;
+	int fw = (_flags & FRAME3D)!=0 ? 3 : ((_flags & NOFOCUSFRAME)? 0 : 1);
 	_lo.ColSet(0, fw);
 	_lo.ColSet(3, fw);
 	_lo.LineSet(0, fw);
@@ -68,7 +73,8 @@ ComboBox::ComboBox(int nId, Win *parent, int cols, int rows, unsigned flags,  cr
 
 void ComboBox::Clear()
 {
-	CloseBox();
+	if (_box.ptr()) _box->Clear();
+	//CloseBox();
 	_list.clear();
 	if (_current >=0 ){
 		_current = -1;
@@ -78,7 +84,7 @@ void ComboBox::Clear()
 
 void ComboBox::Append(const unicode_t *text, void *data)
 {
-	CloseBox();
+	//CloseBox();
 	Node node;
 	node.text = new_unicode_str(text);
 	node.data = data;
@@ -101,6 +107,26 @@ carray<unicode_t> ComboBox::GetText()
 	//static unicode_t empty = 0;
 	return _edit.GetText();
 }
+
+void ComboBox::SetText(const unicode_t *txt, bool mark)
+{
+	if (this->_flags & READONLY) return;
+	_edit.SetText(txt, mark);
+	MoveCurrent(-1);
+}
+
+void ComboBox::Insert(unicode_t t)
+{
+	if (this->_flags & READONLY) return;
+	_edit.Insert(t);
+}
+
+void ComboBox::Insert(const unicode_t *txt)
+{
+	if (this->_flags & READONLY) return;
+	_edit.Insert(txt);
+}
+
 
 void * ComboBox::ItemData(int n)
 {
@@ -175,12 +201,13 @@ bool ComboBox::EventKey(cevent_key* pEvent)
 
 		case FC(VK_UP, KM_SHIFT):
 		case FC(VK_UP, KM_CTRL):
-			CloseBox();
-			return true;
-			
 		case FC(VK_DOWN, KM_SHIFT):
 		case FC(VK_DOWN, KM_CTRL):
-			if (!_box.ptr()) {
+			if (_box.ptr()) 
+			{
+				CloseBox();
+				return true;
+			} else {
 				OpenBox();
 				return true;
 			}
@@ -191,8 +218,10 @@ bool ComboBox::EventKey(cevent_key* pEvent)
 			if (_box.ptr())
 				return _box->EventKey(pEvent);
 			else {
-				if (_current > 0) MoveCurrent(_current - 1);
-				return true;
+				if (_current > 0) {
+					MoveCurrent(_current - 1);
+					return true;
+				}
 			}
 			break;
 
@@ -200,8 +229,11 @@ bool ComboBox::EventKey(cevent_key* pEvent)
 			if (_box.ptr())
 				return _box->EventKey(pEvent);
 			else {
-				MoveCurrent(_current + 1);
-				return true;
+				if (_current+1 < _list.count())
+				{
+					MoveCurrent(_current + 1);
+					return true;
+				}
 			}
 			break;
 
@@ -217,9 +249,30 @@ bool ComboBox::EventKey(cevent_key* pEvent)
 	return false;
 }
 
+bool ComboBox::OnOpenBox()
+{
+	return true;
+}
+
+void ComboBox::OnCloseBox()
+{
+}
+
+void ComboBox::RefreshBox()
+{
+	if (!_box.ptr()) return;
+	_box->Clear();
+	for (int i = 0; i < _list.count(); i++)
+		_box->Append(_list[i].text.ptr());
+	_box->DataRefresh();
+}
+
 void ComboBox::OpenBox()
 {
 	if (_box.ptr()) return;
+
+	if (!OnOpenBox()) return;
+
 	_box = new TextList(Win::WT_POPUP, 0, 0, this, VListWin::SINGLE_SELECT,  VListWin::SINGLE_BORDER, 0);
 
 	for (int i = 0; i < _list.count(); i++)
@@ -255,7 +308,11 @@ void ComboBox::OpenBox()
 void ComboBox::CloseBox()
 {
 	if (IsCaptured()) ReleaseCapture(&captureSD);
-	_box = 0;
+	if (_box.ptr())
+	{
+		OnCloseBox();
+		_box = 0;
+	}
 }
 
 bool ComboBox::EventMouse(cevent_mouse* pEvent)
@@ -313,14 +370,28 @@ void ComboBox::Paint(GC &gc, const crect &paintRect)
 	bool mode3d  = UiGetBool(ui3d, 0, 0, true); 
 	gc.SetFillColor(bgColor);
 
+	unsigned frameColor = UiGetColor(uiFrameColor, 0, 0,0xFFFFFF);
 	if ((_flags & FRAME3D) != 0) 
 	{
+		unsigned mode3d = UiGetBool(ui3d, 0, 0, true);
+		if (mode3d) {
+			Draw3DButtonW2(gc, cr, frameColor, false);
+			cr.Dec();
+			cr.Dec();
+		} else {
+			DrawBorder(gc, cr, frameColor);
+			cr.Dec();
+			DrawBorder(gc, cr, frameColor);
+			cr.Dec();
+		}
+/*
 		Draw3DButtonW2(gc, cr, bgColor, false);
 		cr.Dec();
 		cr.Dec();
+*/
 	}
 
-	DrawBorder(gc, cr, InFocus() ? UiGetColor(uiFocusFrameColor, 0, 0, 0) : ColorTone(bgColor, -150)); 
+	DrawBorder(gc, cr, InFocus() && (_flags & NOFOCUSFRAME) == 0 ? UiGetColor(uiFocusFrameColor, 0, 0, 0) : ColorTone(UiGetColor(uiFrameColor, 0, 0,0xFFFFFF), -200)); 
 
 	SBCDrawButton(gc, _buttonRect, (_flags & MODE_UP)? 4 : 5 , bgColor, false, mode3d);
 }

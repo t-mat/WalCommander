@@ -45,7 +45,9 @@ PanelSearchWin::PanelSearchWin(PanelWin *parent, cevent_key *key)
 	SetLSize(ls);
 	
 	if (_parent) _parent->RecalcLayouts();
-	
+
+	_edit.EnableAltSymbols(true);
+
 	if (key) _edit.EventKey(key);
 }
 

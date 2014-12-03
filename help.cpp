@@ -12,7 +12,7 @@
 
 using namespace wal;
 
-static char verString[] = "Wal Commander v 0.16.5";
+static char verString[] = "Wal Commander v 0.16.7";
 
 #define MIN_WIDTH (500)
 

@@ -16,10 +16,10 @@
 
 #include "ncview.h"
 #include "ncedit.h"
-#include "nchistory.h"
 #include "ncdialogs.h"
 #include "ext-app.h"
 #include "toolbar.h"
+#include "nceditline.h"
 
 using namespace wal;
 
@@ -168,6 +168,16 @@ public:
 	virtual void OnChangeStyles();
 };
 
+class CmdHistoryWrap {
+	cptr<HistCollect> _list;
+	int _current;
+	void LoadList();
+public:
+	CmdHistoryWrap():_current(-1){}
+	void Reset();
+	const unicode_t *Prev();
+	const unicode_t *Next();
+};
 
 class NCWin: public NCDialogParent {
 	friend class PanelWin;
@@ -180,7 +190,7 @@ private:
 	PanelWin _leftPanel,
 		 _rightPanel;
 
-	EditLine _edit;
+	NCEditLine _edit;
 #ifdef _WIN32
 	W32Cons
 #else
@@ -205,8 +215,8 @@ private:
 
 	bool _panelVisible;
 	MODE _mode;
-
-	NCHistory _history;
+	
+	CmdHistoryWrap	_history;
 	
 	int _shiftSelectType;
 

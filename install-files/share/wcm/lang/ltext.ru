@@ -7,15 +7,15 @@ txt "Черный"
 id "White"
 txt "Белый"
 
-#panel.cpp:1103
+#panel.cpp:1244
 id "%s bytes in %i files%s"
 txt "%s байт в %i файлах%s"
 
-#panel.cpp:1101
+#panel.cpp:1242
 id "%s bytes in %i selected files%s"
 txt "%s байт в %i выбранных файлах%s"
 
-#wcm-config.cpp:1312
+#wcm-config.cpp:1314
 id "&Ask user if Exec/Open conflict"
 txt "&Запрашивать при конфликте Exec/Open"
 
@@ -23,8 +23,8 @@ txt "&Запрашивать при конфликте Exec/Open"
 id "&Auto indent"
 txt "&Автоотступ"
 
-#ncwin.cpp:178
-#ncwin.cpp:186
+#ncwin.cpp:220
+#ncwin.cpp:228
 id "&Brief"
 txt "&Краткий"
 
@@ -32,8 +32,8 @@ txt "&Краткий"
 id "&Case sensitive sort"
 txt "Учитывать &регистр при сортировке"
 
-#ncwin.cpp:201
-#ncwin.cpp:210
+#ncwin.cpp:243
+#ncwin.cpp:252
 id "&Change drive"
 txt "С&менить диск" 
 
@@ -41,31 +41,31 @@ txt "С&менить диск"
 id "&Colors:"
 txt "&Цвет:"
 
-#ncwin.cpp:230
+#ncwin.cpp:272
 id "&Commands"
 txt "&Команды"
 
-#ncwin.cpp:236
+#ncwin.cpp:278
 id "&Copy"
 txt "&Копирование"
 
-#ncwin.cpp:239
+#ncwin.cpp:281
 id "&Delete"
 txt "&Удалить"
 
-#ncwin.cpp:235
+#ncwin.cpp:277
 id "&Edit"
 txt "&Редактирование"
 
-#ncwin.cpp:217
+#ncwin.cpp:259
 id "&Editor settings"
 txt "Настройки &редактора"
 
-#ncwin.cpp:229
+#ncwin.cpp:271
 id "&Files"
 txt "&Файлы"
 
-#ncwin.cpp:245
+#ncwin.cpp:287
 id "&Find file"
 txt "&Поиск файла"
 
@@ -73,52 +73,52 @@ txt "&Поиск файла"
 id "&Fonts:"
 txt "&Фонты:"
 
-#ncwin.cpp:246
+#ncwin.cpp:288
 id "&History"
 txt "&История команд"
 
-#ncwin.cpp:243
+#ncwin.cpp:285
 id "&Invert group"
 txt "&Инверсия пометки"
 
-#wcm-config.cpp:1314
+#wcm-config.cpp:1318
 id "&Language:"
 txt "&Язык:"
 
-#ncwin.cpp:228
+#ncwin.cpp:270
 id "&Left"
 txt "&Левая"
 
-#ncwin.cpp:238
+#ncwin.cpp:280
 id "&Make folder"
 txt "&Создание папки"
 
-#ncwin.cpp:179
-#ncwin.cpp:187
+#ncwin.cpp:221
+#ncwin.cpp:229
 id "&Medium"
 txt "&Средний"
 
-#ncwin.cpp:231
+#ncwin.cpp:273
 id "&Options"
 txt "&Настройки"
 
-#ncwin.cpp:247
+#ncwin.cpp:289
 id "&Panel on/off"
 txt "Панели &Вкл/Выкл"
 
-#ncwin.cpp:216
+#ncwin.cpp:258
 id "&Panel settings"
 txt "Настройки &панели"
 
-#ncwin.cpp:237
+#ncwin.cpp:279
 id "&Rename or move"
 txt "П&еренос"
 
-#ncwin.cpp:232
+#ncwin.cpp:274
 id "&Right"
 txt "&Правая"
 
-#ncwin.cpp:225
+#ncwin.cpp:267
 id "&Save setup"
 txt "&Сохранение настроек"
 
@@ -126,8 +126,8 @@ txt "&Сохранение настроек"
 id "&Set font..."
 txt "&Установить фонт"
 
-#ncwin.cpp:200
-#ncwin.cpp:209
+#ncwin.cpp:242
+#ncwin.cpp:251
 id "&Sort mode"
 txt "Режим&ы сортировки"
 
@@ -139,28 +139,28 @@ txt "Подсветка &синтаксиса"
 id "&Tab size:"
 txt "Размер &табуляции:"
 
-#ncwin.cpp:220
+#ncwin.cpp:262
 id "&Terminal settings"
 txt "Настройки &терминала"
 
-#ncwin.cpp:180
-#ncwin.cpp:188
+#ncwin.cpp:222
+#ncwin.cpp:230
 id "&Two columns"
 txt "В &2 колонки"
 
-#ncwin.cpp:234
+#ncwin.cpp:276
 id "&View"
 txt "&Просмотр"
 
-#panel.cpp:1096
+#panel.cpp:1237
 id "(%i hidden)"
 txt "(%i скрытых)"
 
-#panel.cpp:1075
+#panel.cpp:1216
 id "...Loading..."
 txt "...Загрузка..."
 
-#ncwin.cpp:72
+#ncwin.cpp:113
 id "=  panels"
 txt "сделить неактивную панель равной активной"
 
@@ -172,133 +172,133 @@ txt "Добавить кодировку"
 id "Add..."
 txt "Добавить..."
 
-#ftplogon.cpp:41
+#ftplogon.cpp:42
 id "Anonymous logon"
 txt "Анонимный вход"
 
-#wcm-config.cpp:1349
+#wcm-config.cpp:1357
 id "Autodetect"
 txt "Автоопределение"
 
-#ncwin.cpp:2298
-#ncwin.cpp:2307
+#ncwin.cpp:2357
+#ncwin.cpp:2366
 id "BB>Charset"
 txt "КодСтр"
 
-#ncwin.cpp:2277
-#ncwin.cpp:2291
+#ncwin.cpp:2336
+#ncwin.cpp:2350
 id "BB>Copy"
 txt "Копирование"
 
-#ncwin.cpp:2280
+#ncwin.cpp:2339
 id "BB>Delete"
 txt "Удаление"
 
-#ncwin.cpp:2276
+#ncwin.cpp:2335
 id "BB>Edit"
 txt "Редактирование"
 
-#ncwin.cpp:2290
+#ncwin.cpp:2349
 id "BB>Edit..."
 txt "Ред..."
 
-#ncwin.cpp:2296
-#ncwin.cpp:2299
-#ncwin.cpp:2304
-#ncwin.cpp:2308
+#ncwin.cpp:2355
+#ncwin.cpp:2358
+#ncwin.cpp:2363
+#ncwin.cpp:2367
 id "BB>Exit"
 txt "Выход"
 
-#ncwin.cpp:2284
+#ncwin.cpp:2343
 id "BB>Extens"
 txt "Расшитерие"
 
-#ncwin.cpp:2274
-#ncwin.cpp:2294
-#ncwin.cpp:2302
+#ncwin.cpp:2333
+#ncwin.cpp:2353
+#ncwin.cpp:2361
 id "BB>Help"
 txt "Помощь"
 
-#ncwin.cpp:2305
+#ncwin.cpp:2364
 id "BB>Hex/Text"
 txt "Hex/Текст"
 
-#ncwin.cpp:2288
+#ncwin.cpp:2347
 id "BB>Left"
 txt "Левый"
 
-#ncwin.cpp:2281
+#ncwin.cpp:2340
 id "BB>Menu"
 txt "Меню"
 
-#ncwin.cpp:2279
+#ncwin.cpp:2338
 id "BB>MkDir"
 txt "Папка"
 
-#ncwin.cpp:2285
+#ncwin.cpp:2344
 id "BB>Modif"
 txt "Время мод."
 
-#ncwin.cpp:2278
+#ncwin.cpp:2337
 id "BB>Move"
 txt "Перенос"
 
-#ncwin.cpp:2283
+#ncwin.cpp:2342
 id "BB>Name"
 txt "Имя"
 
-#ncwin.cpp:2282
+#ncwin.cpp:2341
 id "BB>Quit"
 txt "Выход"
 
-#ncwin.cpp:2292
+#ncwin.cpp:2351
 id "BB>Rename"
 txt "Переименовать"
 
-#ncwin.cpp:2301
+#ncwin.cpp:2360
 id "BB>Replace"
 txt "Замен"
 
-#ncwin.cpp:2289
+#ncwin.cpp:2348
 id "BB>Right"
 txt "Правый"
 
-#ncwin.cpp:2293
-#ncwin.cpp:2295
+#ncwin.cpp:2352
+#ncwin.cpp:2354
 id "BB>Save"
 txt "Сохр"
 
-#ncwin.cpp:2297
-#ncwin.cpp:2306
+#ncwin.cpp:2356
+#ncwin.cpp:2365
 id "BB>Search"
 txt "Поиск"
 
-#ncwin.cpp:2286
+#ncwin.cpp:2345
 id "BB>Size"
 txt "Размер"
 
-#ncwin.cpp:2300
-#ncwin.cpp:2309
+#ncwin.cpp:2359
+#ncwin.cpp:2368
 id "BB>Table"
 txt "Табл.кодировок"
 
-#ncwin.cpp:2287
+#ncwin.cpp:2346
 id "BB>Unsort"
 txt "Несорт."
 
-#ncwin.cpp:2275
+#ncwin.cpp:2334
 id "BB>View"
 txt "Просмотр"
 
-#ncwin.cpp:2303
+#ncwin.cpp:2362
 id "BB>Wrap/Un..."
 txt ""
 
-#wcm-config.cpp:1434
+#wcm-config.cpp:1444
 id "Backspace key:"
 txt "Режим клавиши Backspace:"
 
-#filesearch.cpp:472
+#filesearch.cpp:476
 id "Bad directories:"
 txt "Нечитаемых каталогов"
 
@@ -306,111 +306,111 @@ txt "Нечитаемых каталогов"
 id "Bad style info"
 txt ""
 
-#fileopers.cpp:1330
+#fileopers.cpp:1475
 id "Can't copy directory\n"
 txt "Не удается скопировать каталог"
 
-#fileopers.cpp:932
+#fileopers.cpp:1077
 id "Can't copy file to itself:\n"
 txt "Невозможно скопировать файл сам в себя:\n"
 
-#fileopers.cpp:1150
+#fileopers.cpp:1295
 id "Can't copy files, destination is not found:\n"
 txt "Не удается скопировать файл, приемник не найден"
 
-#fileopers.cpp:899
+#fileopers.cpp:1044
 id "Can't copy link to itself:\n"
 txt "Невозможно скопировать ссылку в себя:\n"
 
-#fileopers.cpp:924
+#fileopers.cpp:1069
 id "Can't copy the links or special file:\n"
 txt "Невозможно скопировать ссылку в спец. файл:\n"
 
-#fileopers.cpp:1139
+#fileopers.cpp:1284
 id "Can't copy to:\n"
 txt "Не удается скопировать в:\n"
 
-#fileopers.cpp:978
+#fileopers.cpp:1123
 id "Can't create file:\n"
 txt "Не удается создать файл:\n"
 
-#fileopers.cpp:906
+#fileopers.cpp:1051
 id "Can't create symbolic link:\n"
 txt "Не удается создать символическую ссылку"
 
-#fileopers.cpp:1086
+#fileopers.cpp:1231
 id "Can't create the directory:\n"
 txt "Не удается создать папку:\n"
 
-#fileopers.cpp:1287
+#fileopers.cpp:1432
 id "Can't delete the file:\n"
 txt "Не удается удалить файл:\n"
 
-#fileopers.cpp:1319
+#fileopers.cpp:1464
 id "Can't move directory to itself:\n"
 txt "Невозможно перемещение каталога в себя:\n"
 
-#fileopers.cpp:1264
+#fileopers.cpp:1409
 id "Can't move file to itself:\n"
 txt "Невозможно перемещение файла в себя:\n"
 
-#fileopers.cpp:1424
+#fileopers.cpp:1569
 id "Can't move files, bad destination directory:\n"
 txt "Не удается переместить файл, неверная папка приемник"
 
-#fileopers.cpp:1447
+#fileopers.cpp:1592
 id "Can't move to:\n"
 txt "Не удается переместить в:\n"
 
-#fileopers.cpp:951
+#fileopers.cpp:1096
 id "Can't open file:\n"
 txt "Не удается открыть файл:\n"
 
-#fileopers.cpp:1000
+#fileopers.cpp:1145
 id "Can't read the file:\n"
 txt "Не удается прочитать файл:\n"
 
-#fileopers.cpp:1372
+#fileopers.cpp:1517
 id "Can't rename the directory:\n"
 txt "Не удается переименовать папку:\n"
 
-#fileopers.cpp:1294
+#fileopers.cpp:1439
 id "Can't rename the file:\n"
 txt "Не удается переименовать файл:\n"
 
-#fileopers.cpp:1012
+#fileopers.cpp:1157
 id "Can't write the file:\n"
 txt "Не удается записать в файл:\n"
 
-#fileopers.cpp:450
+#fileopers.cpp:451
 id "Can`t delete directory:\n"
 txt "Не удается удалить папку:\n"
 
-#fileopers.cpp:433
+#fileopers.cpp:434
 id "Can`t delete file:\n"
 txt "Не удается удалить файл:\n"
 
-#ncwin.cpp:1943
+#ncwin.cpp:2001
 id "Can`t execute command in non system fs"
 txt "Невозможно выполнить команду не в системной ФС"
 
-#ncwin.cpp:384
+#ncwin.cpp:427
 id "Can`t execute file in not system fs"
 txt "Невозможно запустить файл не в системной ФС"
 
-#fileopers.cpp:489
-#fileopers.cpp:1078
-#fileopers.cpp:1345
+#fileopers.cpp:490
+#fileopers.cpp:1223
+#fileopers.cpp:1490
 id "Can`t open directory:\n"
 txt "Не удается открыть каталог:\n"
 
-#ncwin.cpp:1012
+#ncwin.cpp:1055
 id "Can`t start viewer in this filesystem"
 txt "Невозможно запустить viewer в этой файловой системе"
 
-#search-dlg.cpp:22
-#search-dlg.cpp:82
-#search-dlg.cpp:145
+#search-dlg.cpp:23
+#search-dlg.cpp:84
+#search-dlg.cpp:149
 id "Case sensitive"
 txt "Учитывать регистр"
 
@@ -418,27 +418,31 @@ txt "Учитывать регистр"
 id "Charset"
 txt "Кодировка"
 
-#ftplogon.cpp:45
-#sftpdlg.cpp:45
+#ftplogon.cpp:46
+#sftpdlg.cpp:44
 id "Charset:"
 txt "Кодировка:"
 
-#fileopers.cpp:823
-#ncwin.cpp:1220
+#dlg-ctrl-l.cpp:47
+id "Computer name:"
+txt "Имя компьютера"
+
+#fileopers.cpp:844
+#ncwin.cpp:1272
 id "Copy"
 txt "Копирование"
 
-#fileopers.cpp:825
+#fileopers.cpp:846
 id "Copying the file"
 txt "Копирование файла"
 
-#fileopers.cpp:363
-#fileopers.cpp:409
-#ncwin.cpp:969
+#fileopers.cpp:364
+#fileopers.cpp:410
+#ncwin.cpp:1012
 id "Create directory"
 txt "Создание папки"
 
-#ncwin.cpp:936
+#ncwin.cpp:979
 id "Create new directory"
 txt "Создание новой папки"
 
@@ -447,7 +451,7 @@ txt "Создание новой папки"
 id "DB>All"
 txt "Все"
 
-#ncdialogs.cpp:437
+#ncdialogs.cpp:439
 id "DB>Cancel"
 txt ""
 
@@ -456,11 +460,11 @@ id "DB>Delete"
 txt "Удалить"
 
 #fileopers.cpp:34
-#ncdialogs.cpp:439
+#ncdialogs.cpp:441
 id "DB>No"
 txt "Нет"
 
-#ncdialogs.cpp:436
+#ncdialogs.cpp:438
 id "DB>Ok"
 txt ""
 
@@ -477,7 +481,7 @@ id "DB>Skip"
 txt "Пропустить"
 
 #fileopers.cpp:33
-#ncdialogs.cpp:438
+#ncdialogs.cpp:440
 id "DB>Yes"
 txt "Да"
 
@@ -501,19 +505,19 @@ txt "Удалить элемент"
 id "Delete item"
 txt "Удалить элемент"
 
-#fileopers.cpp:1330
+#fileopers.cpp:1475
 id "Delete the file?"
 txt "Удалить файл?"
 
-#fileopers.cpp:560
-#ncwin.cpp:1171
-#ncwin.cpp:1177
-#ncwin.cpp:1185
+#fileopers.cpp:561
+#ncwin.cpp:1223
+#ncwin.cpp:1229
+#ncwin.cpp:1237
 id "Delete"
 txt "Удаление"
 
-#fileopers.cpp:1156
-#fileopers.cpp:1430
+#fileopers.cpp:1301
+#fileopers.cpp:1575
 id "Destination is not directory:\n"
 txt "Приемник не является каталогом"
 
@@ -521,37 +525,41 @@ txt "Приемник не является каталогом"
 id "Dialog"
 txt "Диалог"
 
-#fileopers.cpp:467
+#dlg-ctrl-l.cpp:70
+id "Disk"
+txt "Диск"
+
+#fileopers.cpp:468
 id "Do you want delete file?\n"
 txt "Удалить файл?\n"
 
-#ncwin.cpp:980
+#ncwin.cpp:1023
 id "Do you want to quit?"
 txt "Хотите выйти?"
 
-#ncwin.cpp:1172
+#ncwin.cpp:1224
 id "Do you wish to delete\n"
 txt "Хотите удалить?\n"
 
-#smblogon.cpp:38
+#smblogon.cpp:39
 id "Domain:"
 txt "Домен:"
 
-#ncwin.cpp:2000
+#ncwin.cpp:2058
 id "Drop current console?"
 txt "Выкинуть текущую консоль"
 
-#ncwin.cpp:248
+#ncwin.cpp:290
 id "E&qual panels"
-txt ""
+txt "Сделать панели &одинаковыми"
 
-#ncwin.cpp:1082
-#ncwin.cpp:1427
-#ncwin.cpp:1497
+#ncwin.cpp:1125
+#ncwin.cpp:1479
+#ncwin.cpp:1549
 id "Edit"
 txt "Редактирование"
 
-#ncwin.cpp:2661
+#ncwin.cpp:2720
 id "Edit:"
 txt "Редакт.:"
 
@@ -560,11 +568,15 @@ txt "Редакт.:"
 id "Editor"
 txt "Редактор"
 
-#wcm-config.cpp:1313
+#wcm-config.cpp:1315
 id "Enable &ESC key to show/hide panels"
 txt "&Разрешить ESC для открытия/закрия панелей"
 
-#wcm-config.cpp:1350
+#wcm-config.cpp:1317
+id "Enable &auto complete"
+txt "Включить &автодополнения"
+
+#wcm-config.cpp:1358
 id "English"
 txt "Английский"
 
@@ -572,40 +584,40 @@ txt "Английский"
 id "Enter shortcut name"
 txt "Введите имя закладки"
 
-#ncwin.cpp:544
-#ncwin.cpp:1943
+#ncwin.cpp:587
+#ncwin.cpp:2001
 id "Execute"
 txt "Выполнение"
 
-#ftplogon.cpp:38
+#ftplogon.cpp:39
 id "FTP logon"
 txt ""
 
-#ncwin.cpp:1497
+#ncwin.cpp:1549
 id "File has changes\nsave it?"
 txt "Файл был изменен\nсохранить его?"
 
-#search-dlg.cpp:78
+#search-dlg.cpp:80
 id "File mask:"
 txt "Маска файла:"
 
-#filesearch.cpp:630
+#filesearch.cpp:634
 id "File search"
 txt "Поиск файла"
 
-#ncwin.cpp:1048
+#ncwin.cpp:1091
 id "File to edit"
 txt "Файл для редактирования"
 
-#filesearch.cpp:470
+#filesearch.cpp:474
 id "Files found:"
 txt "Найдено файлов:"
 
-#fileopers.cpp:827
+#fileopers.cpp:848
 id "Files processed"
 txt "Обработано файлов"
 
-#dircalc.cpp:190
+#dircalc.cpp:192
 id "Files size:"
 txt "Размер файлов:"
 
@@ -613,11 +625,11 @@ txt "Размер файлов:"
 id "Files:"
 txt "Файлов:"
 
-#ncwin.cpp:250
+#ncwin.cpp:293
 id "Fol&der shortcuts"
 txt "&Закладки"
 
-#dircalc.cpp:441
+#dircalc.cpp:388
 id "Folder size"
 txt "Размер папки"
 
@@ -625,22 +637,34 @@ txt "Размер папки"
 id "Folder:"
 txt "Каталог:"
 
-#dircalc.cpp:188
+#dircalc.cpp:189
 id "Folders:"
 txt "Папок:"
 
-#ncwin.cpp:183
-#ncwin.cpp:191
+#dlg-ctrl-l.cpp:74
+id "Free bytes:"
+txt ""
+
+#dlg-ctrl-l.cpp:105
+id "Free paging file:"
+txt ""
+
+#dlg-ctrl-l.cpp:102
+id "Free phisical memory:"
+txt ""
+
+#ncwin.cpp:225
+#ncwin.cpp:233
 id "Full (&access)"
 txt "Широкий (&доступ)"
 
-#ncwin.cpp:181
-#ncwin.cpp:189
+#ncwin.cpp:223
+#ncwin.cpp:231
 id "Full (&name)"
 txt "&Широкий"
 
-#ncwin.cpp:182
-#ncwin.cpp:190
+#ncwin.cpp:224
+#ncwin.cpp:232
 id "Full (size, &time)"
 txt "Широкий (разм.,&время)"
 
@@ -656,47 +680,52 @@ txt "Помошь, заголовок"
 id "Help text"
 txt "Помошь, текст"
 
-#help.cpp:1564
+#help.cpp:1579
 id "Help"
 txt "Помощь"
 
-#ncwin.cpp:699
-#ncwin.cpp:722
+#ncwin.cpp:742
+#ncwin.cpp:765
 id "Home"
 txt "Домашний каталог"
+
+#dlg-ctrl-l.cpp:39
+#dlg-ctrl-l.cpp:43
+id "Information"
+txt ""
 
 #wcm-config.cpp:987
 id "Items:"
 txt "Элементы:"
 
-#wcm-config.cpp:1408
+#wcm-config.cpp:1418
 id "Language changed. \nFor effect you must save config and restart"
 txt "Для того, чтобы изменения языка вступили в силу\nнеобходимо сохранить общие настройки\nи перезапустить программу"
 
-#ftplogon.cpp:42
-#smblogon.cpp:39
-#sftpdlg.cpp:42
+#ftplogon.cpp:43
+#smblogon.cpp:40
+#sftpdlg.cpp:41
 id "Login:"
 txt "Имя пользователя:"
 
-#fileopers.cpp:823
-#ncwin.cpp:1276
+#fileopers.cpp:844
+#ncwin.cpp:1328
 id "Move"
 txt "Перенос"
 
-#fileopers.cpp:825
+#fileopers.cpp:846
 id "Moving the file"
 txt "Перемещение файла"
 
-#filesearch.cpp:474
+#filesearch.cpp:478
 id "Not opened files:"
 txt "Неоткрываемых файлов:"
 
-#dircalc.cpp:192
+#dircalc.cpp:195
 id "Not readable folders:"
 txt "Нечитаемых папок: "
 
-#wcm-config.cpp:1407
+#wcm-config.cpp:1417
 id "Note"
 txt "Предупреждение"
 
@@ -704,8 +733,8 @@ txt "Предупреждение"
 id "Other..."
 txt "Другие..."
 
-#fileopers.cpp:962
-#fileopers.cpp:1275
+#fileopers.cpp:1107
+#fileopers.cpp:1420
 id "Owerwrite  file?\n"
 txt "Перезаписать файл?"
 
@@ -717,31 +746,35 @@ txt "Настройки панели"
 id "Panel"
 txt "Панель"
 
-#ftplogon.cpp:56
+#ftplogon.cpp:57
 id "Passive mode"
 txt "Пассивный режим"
 
-#ftplogon.cpp:43
-#smblogon.cpp:40
+#ftplogon.cpp:44
+#smblogon.cpp:41
 id "Password:"
 txt "Пароль:"
 
-#ftplogon.cpp:44
-#sftpdlg.cpp:44
+#ftplogon.cpp:45
+#sftpdlg.cpp:43
 id "Port:"
 txt "Порт:"
 
-#ncwin.cpp:980
+#dlg-ctrl-l.cpp:92
+id "Processor:"
+txt ""
+
+#ncwin.cpp:1023
 id "Quit"
 txt "Выход"
 
-#panel.cpp:1335
-#panel.cpp:1359
-#panel.cpp:1391
+#panel.cpp:1476
+#panel.cpp:1500
+#panel.cpp:1532
 id "Read dialog list"
 txt "Чтение списка каталога"
 
-#ncwin.cpp:91
+#ncwin.cpp:132
 id "Redo"
 txt ""
 
@@ -753,66 +786,66 @@ txt "Переименовать элемент"
 id "Rename"
 txt "Переименовать"
 
-#ncedit.cpp:2081
+#ncedit.cpp:2083
 id "Replace it?"
 txt "Заменить?"
 
-#ncwin.cpp:88
+#ncwin.cpp:129
 id "Replace text"
 txt "Поиск и замена текста"
 
-#search-dlg.cpp:142
+#search-dlg.cpp:146
 id "Replace with:"
 txt "Заменить на:"
 
-#search-dlg.cpp:139
-#ncedit.cpp:2081
-#ncwin.cpp:1464
+#search-dlg.cpp:143
+#ncedit.cpp:2083
+#ncwin.cpp:1516
 id "Replace"
 txt "Замена"
 
-#ncwin.cpp:70
+#ncwin.cpp:111
 id "Reread\ncurrent panel"
 txt "перечитать каталог\nв текущей панеле"
 
-#ncwin.cpp:383
+#ncwin.cpp:426
 id "Run"
 txt ""
 
-#ncwin.cpp:214
+#ncwin.cpp:256
 id "S&ystem settings"
 txt "&Системные параметры"
 
-#sftpdlg.cpp:39
+#sftpdlg.cpp:38
 id "SFTP logon"
 txt ""
 
-#ncwin.cpp:195
-#ncwin.cpp:204
+#ncwin.cpp:237
+#ncwin.cpp:246
 id "SM>Extension"
 txt "По рас&ширнию"
 
-#ncwin.cpp:196
-#ncwin.cpp:205
+#ncwin.cpp:238
+#ncwin.cpp:247
 id "SM>Modif. Time"
 txt "По времени &модификации"
 
-#ncwin.cpp:194
-#ncwin.cpp:203
+#ncwin.cpp:236
+#ncwin.cpp:245
 id "SM>Name"
 txt "По &имени"
 
-#ncwin.cpp:197
-#ncwin.cpp:206
+#ncwin.cpp:239
+#ncwin.cpp:248
 id "SM>Size"
 txt "По &размеру"
 
-#ncwin.cpp:198
-#ncwin.cpp:207
+#ncwin.cpp:240
+#ncwin.cpp:249
 id "SM>Unsorted"
 txt "&Без сортировки"
 
-#smblogon.cpp:33
+#smblogon.cpp:34
 id "SMB logon"
 txt ""
 
@@ -820,54 +853,58 @@ txt ""
 id "Save &file position"
 txt "Сохранать позиция в &файлах"
 
-#ncwin.cpp:1398
+#wcm-config.cpp:1316
+id "Save &history to disk"
+txt "Сохранять &историю на диск"
+
+#ncwin.cpp:1450
 id "Save file as ..."
 txt "Сохранить файл как ..."
 
-#ncwin.cpp:85
+#ncwin.cpp:126
 id "Save file"
 txt "сохранить файл"
 
-#ncwin.cpp:1353
+#ncwin.cpp:1405
 id "Save setup"
 txt "Сохранение настроек"
 
-#dircalc.cpp:380
+#dircalc.cpp:327
 id "Scan done"
 txt "Сканирование завершено"
 
-#filesearch.cpp:575
+#filesearch.cpp:579
 id "Search done"
 txt "Поиск завершен"
 
-#ncwin.cpp:74
+#ncwin.cpp:115
 id "Search files"
 txt "Поиск файлов"
 
-#search-dlg.cpp:141
+#search-dlg.cpp:145
 id "Search for:"
 txt "Ищем:"
 
-#ncwin.cpp:87
-#ncwin.cpp:98
+#ncwin.cpp:128
+#ncwin.cpp:139
 id "Search text"
 txt "Поиск текста"
 
-#search-dlg.cpp:19
-#search-dlg.cpp:76
+#search-dlg.cpp:20
+#search-dlg.cpp:78
 #ncview.cpp:2225
 #ncview.cpp:2287
-#ncwin.cpp:1449
-#ncwin.cpp:1477
+#ncwin.cpp:1501
+#ncwin.cpp:1529
 id "Search"
 txt "Поиск"
 
-#panel.cpp:32
-#filesearch.cpp:637
+#panel.cpp:28
+#filesearch.cpp:641
 id "Search:"
 txt "Поиск:"
 
-#ncwin.cpp:241
+#ncwin.cpp:283
 id "Select &group"
 txt "Пометить &группу"
 
@@ -879,10 +916,10 @@ txt "Выбор фонта X сервера"
 id "Select font"
 txt "Выбор фонта"
 
-#ftplogon.cpp:40
-#smblogon.cpp:35
-#smblogon.cpp:37
-#sftpdlg.cpp:41
+#ftplogon.cpp:41
+#smblogon.cpp:36
+#smblogon.cpp:38
+#sftpdlg.cpp:40
 id "Server:"
 txt "Сервер:"
 
@@ -910,15 +947,15 @@ txt "Показывать &иконки"
 id "Show &toolbar"
 txt "Показывать &тулбар"
 
-#ncwin.cpp:78
+#ncwin.cpp:119
 id "Show Command history"
 txt "показать историю команд"
 
-#ncwin.cpp:76
+#ncwin.cpp:117
 id "Show Shortcuts"
 txt "Показать закладки"
 
-#ncwin.cpp:71
+#ncwin.cpp:112
 id "Show/Hide panel"
 txt "показать/скрыть панели"
 
@@ -926,17 +963,17 @@ txt "показать/скрыть панели"
 id "Size:"
 txt "Размер:"
 
-#ncwin.cpp:2000
+#ncwin.cpp:2058
 id "Stop"
 txt "Стоп"
 
-#ncwin.cpp:1449
-#ncwin.cpp:1464
-#ncwin.cpp:1477
+#ncwin.cpp:1501
+#ncwin.cpp:1516
+#ncwin.cpp:1529
 id "String not found"
 txt "Текст не найден"
 
-#ncwin.cpp:223
+#ncwin.cpp:265
 id "Sty&les"
 txt "&Внешний вид"
 
@@ -944,11 +981,15 @@ txt "&Внешний вид"
 id "Style"
 txt "Внешний вид"
 
-#wcm-config.cpp:1309
+#wcm-config.cpp:1311
 id "System settings"
 txt "Системные параметры"
 
-#wcm-config.cpp:1432
+#dlg-ctrl-l.cpp:82
+id "System"
+txt ""
+
+#wcm-config.cpp:1442
 id "Terminal options"
 txt "Настройки терминала"
 
@@ -956,24 +997,45 @@ txt "Настройки терминала"
 id "Terminal"
 txt "Терминал"
 
-#search-dlg.cpp:79
+#search-dlg.cpp:81
 id "Text:"
 txt "Текст:"
 
-#ncwin.cpp:242
+#ncwin.cpp:291
+id "Toggle &info dialog"
+txt "Показать ин&фо. диалог"
+
+#dlg-ctrl-l.cpp:73
+id "Total bytes:"
+txt ""
+
+#dlg-ctrl-l.cpp:104
+id "Total paging file:"
+txt ""
+
+#dlg-ctrl-l.cpp:101
+id "Total phisical memory:"
+txt ""
+
+#ncwin.cpp:284
 id "U&nselect group"
 txt "С&нять пометку"
 
-#ncwin.cpp:90
+#ncwin.cpp:131
 id "Undo"
 txt ""
 
-#ncwin.cpp:1012
-#ncwin.cpp:1020
+#dlg-ctrl-l.cpp:60
+#dlg-ctrl-l.cpp:65
+id "User name:"
+txt "Имя пользователя"
+
+#ncwin.cpp:1055
+#ncwin.cpp:1063
 id "View"
 txt "Просмотр"
 
-#ncwin.cpp:2861
+#ncwin.cpp:2920
 id "View:"
 txt "Просмотр:"
 
@@ -981,19 +1043,19 @@ txt "Просмотр:"
 id "Viewer"
 txt "Вьювер"
 
-#ncwin.cpp:1176
+#ncwin.cpp:1228
 id "You have %i selected files\nDo you want to delete it?"
 txt "Выбрано %i файлов\nХотите удалить их?"
 
-#filesearch.cpp:630
+#filesearch.cpp:634
 id "can't search this text"
 txt "не удалось найти этот текст"
 
-#ncwin.cpp:1920
+#ncwin.cpp:1978
 id "can`t change directory to:%s\n"
 txt "не удалось сменить путь на :%s\n"
 
-#ncwin.cpp:949
+#ncwin.cpp:992
 id "can`t create directory:%s\n"
 txt "Не удалось создать папку:%s\n"
 
@@ -1002,11 +1064,11 @@ txt "Не удалось создать папку:%s\n"
 id "other charsets"
 txt "другие кодировки"
 
-#fileopers.cpp:1330
+#fileopers.cpp:1475
 id "to file"
 txt "в файл"
 
-#fileopers.cpp:826
+#fileopers.cpp:847
 id "to"
 txt "в"
 

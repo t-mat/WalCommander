@@ -11,9 +11,14 @@ using namespace wal;
 static char uiDefaultWcmRules[] = 
 //"* {mode3d:0} "
 "ComboBox, ComboBox EditLine {color:0;  background:0xFFFFFF }"
-"ComboBox EditLine:parent-focus {color:0xFFFFFF;  background:0x800000 }"
+"ComboBox EditLine:parent-focus {color: 0; background: 0x909000; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xD8E9EC }" //{color:0xFFFFFF;  background:0x800000 }"
 "ComboBox *@item {color: 0; background: 0xFFFFFF; }"
 "ComboBox *@item:current-item {color: 0xFFFFFF; background: 0x800000; }"
+
+"NCEditLine, NCEditLine EditLine:!enabled {color:0;  background:0xD8E9EC; }"
+"NCEditLine EditLine:parent-focus:enabled {color: 0; background: 0x909000; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xD8E9EC }"
+"NCEditLine *@item {color: 0; background: 0xFFFFFF; }"
+"NCEditLine *@item:current-item {color: 0xFFFFFF; background: 0x800000; }"
 
 "#variable { color : 0x800000 }"
 "#value { color : 0x9000 }"
@@ -28,7 +33,7 @@ static char uiDefaultWcmRules[] =
 
 "ScrollBar { button-color: 0xD8E9EC;  background: 0xC8D9DC; }"
 "EditLine:!enabled { background: 0xD8E9EC; }"
-"EditLine:focus {color: 0; background: 0x909000; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xD8E9EC }"
+"EditLine:focus:enabled {color: 0; background: 0x909000; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xD8E9EC }"
 "EditLine {color: 0; background: 0x909000; frame-color: 0xD8E9EC; mark-color: 0xFFFFFF; mark-background : 0x808080; }"
 
 //"Panel { color: 0xFFFF80; background: 0x800000; fssize-color: 0x00FF00; }"
@@ -53,7 +58,12 @@ static char uiDefaultWcmRules[] =
 
 "ButtonWin { color: 0xFFFFFF; background: 0; }"
 "ButtonWin Button { color: 0; background: 0xB0B000; }"
-"EditLine#command-line {color: 0xFFFFFF; background: 0; mark-color: 0xFFFFFF; mark-background : 0x800000; }"
+//
+"#command-line EditLine {color: 0xFFFFFF; background: 0; mark-color: 0xFFFFFF; mark-background : 0x800000; }"
+"#command-line * {color: 0xFFFFFF; background: 0x808000; frame-color: 0xFFFFFF; }" 
+"#command-line * @item:current-item {color: 0xFFFFFF; background: 0; frame-color: 0;  }"
+"#command-line {color: 0xFFFFFF; background: 0x808000; }"
+
 "ToolTip { color: 0; background: 0x80FFFF; }"
 "ToolBar { color: 0; background: 0xB0B000; }"
 
@@ -109,6 +119,12 @@ static char uiBlackWcmRules[] =
 "ComboBox *@item {color: 0; background: 0xFFFFFF; }"
 "ComboBox *@item:current-item {color: 0xFFFFFF; background: 0x800000; }"
 
+//"NCEditLine, NCEditLine EditLine:!enabled {color:0;  background:0xD8E9EC; }"
+"NCEditLine * {frame-color: 0xFFFFFF } " //EditLine:parent-focus:enabled {color: 0; background: 0x909000; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xD8E9EC }"
+//"NCEditLine *@item {color: 0; background: 0xFFFFFF; }"
+//"NCEditLine *@item:current-item {color: 0xFFFFFF; background: 0x800000; }"
+
+
 "* {color: 0; background: 0xA0B0B0; focus-frame-color : 0x00A000; button-color: 0xD8E9EC; hotkey-color: 0xFFFF  }"
 "*@item:odd		{color: 0xFFFFFF; background: 0x101010; }"
 "*@item:current-item:focus	{color: 0xFFFFFF; background: 0x800000; }"
@@ -119,7 +135,7 @@ static char uiBlackWcmRules[] =
 
 "ScrollBar { button-color: 0xD8E9EC;  }"
 "EditLine:!enabled { background: 0xD8E9EC; }"
-"EditLine:focus {color: 0; background: 0x909000; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xA0B0B0 }"
+"EditLine:focus:enabled {color: 0; background: 0x909000; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xA0B0B0 }"
 "EditLine {color: 0; background: 0x909000; frame-color: 0xA0B0B0; mark-color: 0xFFFFFF; mark-background : 0x808080; }"
 
 "Panel { color: 0xA0A0A0; background: 0x000000; fssize-color: 0x00FF00; }"
@@ -146,7 +162,13 @@ static char uiBlackWcmRules[] =
 
 "ButtonWin { color: 0xFFFFFF; background: 0; }"
 "ButtonWin Button { color: 0; background: 0xA0A000; }"
-"EditLine#command-line {color: 0xFFFFFF; background: 0; mark-color: 0xFFFFFF; mark-background : 0x800000; }"
+
+//"EditLine#command-line {color: 0xFFFFFF; background: 0; mark-color: 0xFFFFFF; mark-background : 0x800000; }"
+"#command-line EditLine {color: 0xFFFFFF; background: 0; mark-color: 0xFFFFFF; mark-background : 0x800000; }"
+"#command-line * {color: 0xFFFFFF; background: 0x808000; frame-color: 0xFFFFFF; }" 
+"#command-line * @item:current-item {color: 0xFFFFFF; background: 0; frame-color: 0;  }"
+"#command-line {color: 0xFFFFFF; background: 0x808000; }"
+
 "ToolTip { color: 0; background: 0x80FFFF; }"
 "ToolBar { color: 0; background: 0xA0A000; }"
 "MenuBar { color: 0; background: 0xA0A000; current-item-frame-color:0x00FF00;}"
@@ -207,7 +229,7 @@ static char uiWhiteWcmRules[] =
 
 "ScrollBar { button-color: 0xD8E9EC;  }"
 "EditLine:!enabled { background: 0xD8E9EC; }"
-"EditLine:focus {color: 0; background: 0xFFFFFF; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xD8E9EC }"
+"EditLine:focus:enabled {color: 0; background: 0xFFFFFF; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xD8E9EC }"
 "EditLine {color: 0; background: 0xFFFFFF; frame-color: 0xD8E9EC; mark-color: 0xFFFFFF; mark-background : 0x808080; }"
 
 "Panel { color: 0x000000; background: 0xF8F8F8; fssize-color: 0x008000;}"
