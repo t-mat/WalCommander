@@ -12,7 +12,7 @@
 
 using namespace wal;
 
-static char verString[] = "Wal Commander v 0.16.1";
+static char verString[] = "Wal Commander v 0.16.3";
 
 struct HelpStyle {
 	cfont *font;
@@ -86,7 +86,7 @@ struct HelpNode {
 	cpoint _pos; //относительно хозяина (хозяином и выставляется после prepare)
 	cpoint _size; //текущая ширина и высота
 
-	HelpNode(HelpStyle *style, int min = 0, int max = 10000):_style(style), _min(min), _max(_max), _pos(0,0), _size(0,0){}
+	HelpNode(HelpStyle *style, int min = 0, int max = 10000):_style(style), _min(min), _max(max), _pos(0,0), _size(0,0){}
 	virtual void Init(HelpGC &gc); //инициализируется по данным и определяет min и max
 	virtual void Prepare(int width); //подготовка к размеру, выставляет _size
 	virtual void Paint(HelpGC &gc, int x, int y, bool selected, crect visibleRect); //нарисовать в нужном месте (обязан зарисовать весь размер _size)
@@ -1271,7 +1271,7 @@ HelpWin::HelpWin(const char *theme, Win *parent, crect *rect)
 	layout.SetColGrowth(1);
 	layout.SetLineGrowth(1);
 	this->SetLayout(&layout);
-	this->RecalcLayouts();
+	
 
 	data = GetHelpNode(theme, &styles); 
 	if (data.ptr()) 
@@ -1279,8 +1279,18 @@ HelpWin::HelpWin(const char *theme, Win *parent, crect *rect)
 		wal::GC gc(this);
 		HelpGC hgc(&gc);
 		data->Init(hgc);
+/*
+		{ //определить максимально нужную ширину
+data->Prepare(100000);
+LSize ls = GetLSize();
+ls.x.maximal = data->_max;
+SetLSize(ls);
+		}
+*/
 		data->Prepare(600);
+		layout.ColSet(1, -1, data->_size.x, data->_size.x);
 	}
+	this->RecalcLayouts();
 }
 
 void HelpWin::CalcScroll()
@@ -1405,17 +1415,18 @@ bool HelpWin::EventMouse(cevent_mouse* pEvent)
 {
 	if (!IsEnabled()) return false;
 	
-	if (pEvent->Type() == EV_MOUSE_PRESS) {
+	if (pEvent->Type() == EV_MOUSE_WHEEL) {
 		
-		if (pEvent->Button() == MB_X1) {
+		if (pEvent->Delta() > 0) {
 			MoveYOffset(yOffset - helpRect.Height()/3); 
 			return true;
 		}
 
-		if (pEvent->Button() == MB_X2) {
+		if (pEvent->Delta() < 0) {
 			MoveYOffset(yOffset + helpRect.Height()/3); 
 			return true;
 		}
+		return true;
 	}
 
 
@@ -1438,7 +1449,7 @@ bool HelpWin::EventMouse(cevent_mouse* pEvent)
 		return true;
 	}
 */
-	if (pEvent->Type() == EV_MOUSE_MOVE && IsCaptured())
+/*	if (pEvent->Type() == EV_MOUSE_MOVE && IsCaptured())
 	{
 		if (pEvent->Point().y>=helpRect.top && pEvent->Point().y<=helpRect.bottom) {
 			captureDelta=0;
@@ -1454,6 +1465,7 @@ bool HelpWin::EventMouse(cevent_mouse* pEvent)
 		this->DelTimer(0);
 		return true;
 	}
+	*/
 
 	return false;
 }
@@ -1520,7 +1532,7 @@ public:
 
 		this->AddLayout(&lo);
 		this->SetEnterCmd(CMD_OK);
-
+		
 		MaximizeIfChild();
 	
 		if (!createDialogAsChild) 
@@ -1530,7 +1542,7 @@ public:
 			if (ls.y.minimal<300) ls.y.minimal=300;
 			helpWin.SetLSize(ls);
 			SetPosition();
-		}
+		} 
 
 		helpWin.SetFocus();
 	}

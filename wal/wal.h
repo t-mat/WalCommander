@@ -89,7 +89,7 @@ void init_exceptions();
 
 //////////////////////// ///////////////////////////////////////////////////////////
 
-#define CLASS_COPY_PROTECTION(a) private: a(const a&){}; a& operator = (const a&){};
+#define CLASS_COPY_PROTECTION(a) private: a(const a&){}; a& operator = (const a&){ return *this;};
 
 ////////////////////////  C++ thread wrappers //////////////////////////////////////
 extern void (*thread_error_func)(int err, const char *msg, const char *file, int *line); //by default - abort process
@@ -317,6 +317,7 @@ inline void File::Close()
 {
 	if (!valid_file(_fd)) return;
 	if (file_close(_fd)) Throw();
+_fd = FILE_NULL;
 	_fileName.clear();
 }
 

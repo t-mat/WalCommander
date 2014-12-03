@@ -1633,14 +1633,14 @@ bool ViewWin::EventMouse(cevent_mouse* pEvent)
 	if (!threadData) return false; //!!!
 	switch (pEvent->Type())	{
 
-	case EV_MOUSE_PRESS:
+	case EV_MOUSE_WHEEL:
 		{
-			if (pEvent->Button()==MB_X1) {
+			if (pEvent->Delta() > 0) {
 				threadData->SetEvent(ViewerEvent(ViewerEvent::PAGEUP));
 				break;
 			}
 
-			if (pEvent->Button()==MB_X2) {
+			if (pEvent->Delta() < 0) {
 				threadData->SetEvent(ViewerEvent(ViewerEvent::PAGEDOWN));
 				break;
 			}

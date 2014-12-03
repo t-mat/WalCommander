@@ -296,14 +296,25 @@ bool NCDialog::EventChildKey(Win* child, cevent_key* pEvent)
 {
 	if (pEvent->Type() == EV_KEYDOWN) 
 	{
+		if (pEvent->Key() == VK_TAB) 
+		{
+			if ( (pEvent->Mod() & KM_SHIFT) != 0)
+				FocusPrevChild();
+			else
+				FocusNextChild();
+			return true;
+		}
+	}
+	return false;
+}
+
+bool NCDialog::EventKeyPost(Win* child, cevent_key* pEvent)
+{
+	if (pEvent->Type() == EV_KEYDOWN) 
+	{
 		if (pEvent->Key() == VK_ESCAPE) 
 		{
 			CloseDialog(CMD_CANCEL);
-			return true;
-		} else 
-		if (pEvent->Key() == VK_TAB) 
-		{
-			FocusNextChild();
 			return true;
 		} else 
 		if (pEvent->Key() == VK_RETURN) 
@@ -331,8 +342,8 @@ bool NCDialog::EventChildKey(Win* child, cevent_key* pEvent)
 			}
 		}
 		
-	}; 
- 	return Win::EventChildKey(child, pEvent);
+	};
+	return false;
 }
 
 //namespace wal {
@@ -359,27 +370,36 @@ bool NCDialog::EventShow(bool show)
 void NCDialog::Paint(wal::GC &gc, const crect &paintRect)
 {
 	int bcolor = UiGetColor(uiBackground, 0, 0, 0x808080);
+	bool mode3d = UiGetBool(ui3d, 0, 0, true);
 	
 	gc.SetFillColor(bcolor);
 	gc.FillRect(_borderRect);
-	Draw3DButtonW2(gc, _borderRect, bcolor, true);
+	
+	if (mode3d)
+		Draw3DButtonW2(gc, _borderRect, bcolor, true);
+	else
+		DrawBorder(gc, _borderRect, ColorTone(bcolor, -200));
+	
 	crect rect = _frameRect;
-	Draw3DButtonW2(gc, _frameRect, bcolor, false);
-	rect.Dec();
-	rect.Dec();
+	if (mode3d) {
+		Draw3DButtonW2(gc, _frameRect, bcolor, false);
+		rect.Dec();
+		rect.Dec();
+	}
+	
 	DrawBorder(gc, rect, 0);
 }
 
 
 NCDialog::~NCDialog()
 {
-	if (Type()==WT_CHILD && Parent()) 
+	if (Type() == WT_CHILD && Parent()) 
 		((NCDialogParent*)Parent())->DeleteLayout(&_parentLo);
 }
 
 /////////////////////////////////// NCVertDialog
 
-bool NCVertDialog::EventChildKey(Win* child, cevent_key* pEvent)
+bool NCVertDialog::EventKeyPost(Win *focusWin, cevent_key* pEvent)
 {
 	if (pEvent->Type() == EV_KEYDOWN) 
 	{
@@ -405,7 +425,7 @@ bool NCVertDialog::EventChildKey(Win* child, cevent_key* pEvent)
 			return true;			
 		} 
 	}; 
- 	return NCDialog::EventChildKey(child, pEvent);
+	 NCDialog::EventKeyPost(focusWin, pEvent);
 }
 
 
@@ -605,7 +625,7 @@ CmdHistoryDialog::CmdHistoryDialog(int nId, NCDialogParent *parent, NCHistory &h
 
 bool CmdHistoryDialog::Command(int id, int subId, Win *win, void *data)
 {
-	if (id == CMD_ITEM_CLICK && win == &_list)
+	if ( (id == CMD_ITEM_DOUBLECLICK || id == CMD_ITEM_ENTER) && win == &_list)
 		EndModal(CMD_OK);
 	return NCDialog::Command(id, subId, win, data);
 }
@@ -755,7 +775,7 @@ DlgMenu::DlgMenu(Win *parent, DlgMenuData *data)
 	SetLSize(LSize(cpoint(_width, height)) );
 }
 
-extern unsigned  UnicodeLC(unsigned ch);
+//extern unsigned  UnicodeLC(unsigned ch);
 
 inline bool EqFirst(const unicode_t *s, int c)
 {

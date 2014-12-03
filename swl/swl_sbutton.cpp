@@ -58,11 +58,12 @@ SButton::SButton(int nId, Win *parent, unicode_t *txt, int _group, bool _isSet, 
 	text(new_unicode_str(txt)),
 	group(_group)
 {
+	key = HkStringKey(text.ptr());
 	if (!rect) 
 	{
 		GC gc(this);
 		gc.Set(GetFont());
-		cpoint p = gc.GetTextExtents(txt);
+		cpoint p = HkStringGetTextExtents(gc, txt);
 		if (p.y < 16) p.y = 16;
 		p.x += 17+4;
 		p.y+=2;
@@ -88,6 +89,9 @@ void SButton::Paint(GC &gc, const crect &paintRect)
 	crect cr = ClientRect();
 	
 	unsigned colorBg = UiGetColor(uiBackground, 0, 0, 0xFFFFFF);
+	int color_text = UiGetColor(uiColor, 0, 0, 0x0);
+	int color_hotkey = UiGetColor(uiHotkeyColor, 0, 0, 0xFF);
+
 
 	gc.SetFillColor(colorBg); //CCC
 	gc.FillRect(cr);
@@ -98,12 +102,13 @@ void SButton::Paint(GC &gc, const crect &paintRect)
 		DrawCB(gc,1,(cr.Height()-13)/2,IsSet());
 
 	gc.Set(GetFont());
-	cpoint tsize = gc.GetTextExtents(text.ptr());
+	cpoint tsize = HkStringGetTextExtents(gc, text.ptr());
 	
 	gc.SetFillColor(colorBg);
 	gc.SetTextColor(UiGetColor(uiColor, 0, 0, 0));
 	
-	gc.TextOutF(14+1+1+1 , (cr.Height()-tsize.y)/2, text.ptr());
+	//gc.TextOutF(14+1+1+1 , (cr.Height()-tsize.y)/2, text.ptr());
+	HkStringTextOutF(gc, 14+1+1+1, (cr.Height()-tsize.y)/2, text.ptr(), color_text, color_hotkey);
 	
 	if (InFocus()) {
 		crect rect;
@@ -118,10 +123,10 @@ void SButton::Paint(GC &gc, const crect &paintRect)
 bool SButton::EventMouse(cevent_mouse* pEvent)
 {
 	switch (pEvent->Type())	{
-	case EV_MOUSE_PRESS:
-		break;
+	//case EV_MOUSE_PRESS:
+	//	break;
 
-	case EV_MOUSE_RELEASE:
+	case EV_MOUSE_PRESS:
 		if (!IsEnabled())
 			break;
 
@@ -149,6 +154,20 @@ bool SButton::EventKey(cevent_key* pEvent)
 	}
 	return false;
 }
+
+bool SButton::EventKeyPost(Win *focusWin, cevent_key* pEvent)
+{
+	if (!key || pEvent->Type() != EV_KEYDOWN) return false;
+	if (UnicodeUC(key) != UnicodeUC(pEvent->Char())) return false;
+	SetFocus();
+	if (group > 0)
+	{
+		if (!IsSet()) Change(true);
+	} else 
+		Change(!IsSet());
+	return true;
+}
+
 
 bool SButton::EventFocus(bool recv)
 {

@@ -10,6 +10,10 @@ namespace wal {
 int uiClassVListWin = GetUiID("VListWin");
 int VListWin::UiGetClassId(){	return uiClassVListWin; }
 
+VListWin::~VListWin()
+{
+	if (IsCaptured()) this->ReleaseCapture(&captureSD);
+}
 
 VListWin::VListWin(WTYPE wt, unsigned hints, int nId, Win *parent, SelectType st, BorderType bt, crect *rect)
 :Win(wt, hints, parent, rect, nId),
@@ -20,6 +24,7 @@ VListWin::VListWin(WTYPE wt, unsigned hints, int nId, Win *parent, SelectType st
 	xOffset(0),
 	count(0),
 	first(0),
+	pageSize(1),
 	current(-1),
 	captureDelta(0),
 	borderColor(0),
@@ -29,9 +34,9 @@ VListWin::VListWin(WTYPE wt, unsigned hints, int nId, Win *parent, SelectType st
 	layout(4,4)
 
 {
-	vScroll.Show();   //!!! неясности с порядком ???
+	vScroll.Show(SHOW_INACTIVE);   //!!! неясности с порядком ???
 	vScroll.Enable();
-	hScroll.Show();
+	hScroll.Show(SHOW_INACTIVE);
 	hScroll.Enable();
 
 	vScroll.SetManagedWin(this);
@@ -49,7 +54,36 @@ VListWin::VListWin(WTYPE wt, unsigned hints, int nId, Win *parent, SelectType st
 	layout.SetColGrowth(1);
 	layout.SetLineGrowth(1);
 	this->SetLayout(&layout);
-	this->RecalcLayouts();
+
+	RecalcLayouts();
+	CheckPage(true);
+}
+
+bool VListWin::CheckPage(bool mustVisible)
+{
+	
+	int p = listRect.Height() / itemHeight;
+
+	if (p <= 0) p = 1;
+
+	int f = first;
+
+	if (current >= 0 && mustVisible)
+	{
+		if (current >= f + p) f = current - p + 1;
+		if (current < f) f = current;
+	}
+
+	if (f + p > count) f = count - p;
+
+	if (f < 0) f = 0;
+
+	bool ret = pageSize != p || f != first ;
+
+	pageSize = p;
+	first = f;
+
+	return ret;
 }
 
 void VListWin::CalcScroll()
@@ -57,8 +91,8 @@ void VListWin::CalcScroll()
 	if (itemHeight<=0) itemHeight=1;
 	if (itemWidth<=0) itemWidth=1;
 
-	int n = listRect.Height()/itemHeight;
-	pageSize = n;
+//	int n = listRect.Height()/itemHeight;
+//	pageSize = n;
 	ScrollInfo vsi, hsi;
 	vsi.pageSize = pageSize;
 	vsi.size = count;
@@ -85,9 +119,9 @@ void VListWin::MoveFirst(int n)
 	if (n + pageSize >= count) 
 		n = count - pageSize;
 		
-	if (n<0) n = 0;
+	if (n < 0) n = 0;
 	
-	if (first !=n) 
+	if (first != n) 
 	{
 		first = n;
 		CalcScroll();
@@ -133,7 +167,14 @@ void VListWin::Paint(GC &gc, const crect &paintRect)
 	crect rect = ClientRect();
 	switch (borderType) {
 	case SINGLE_BORDER: DrawBorder(gc,rect, InFocus() ? 0x00C000 : borderColor); break;
-	case BORDER_3D: Draw3DButtonW2(gc,rect, bgColor, false);
+	case BORDER_3D: 
+		if (UiGetBool(ui3d, 0, 0, true)) 
+			Draw3DButtonW2(gc,rect, bgColor, false); 
+		else {
+			DrawBorder(gc,rect, ColorTone(bgColor,-100));
+			rect.Dec();
+			DrawBorder(gc,rect, bgColor);
+		}
 	default: ;
 	}
 
@@ -143,20 +184,21 @@ void VListWin::Paint(GC &gc, const crect &paintRect)
 		gc.FillRect(scrollRect); //CCC
 	}
 
-	if (itemHeight>0) {
-		int n = (rect.Height()+(itemHeight-1))/itemHeight;
+	if (itemHeight > 0) 
+	{
+		int n = (rect.Height() + (itemHeight - 1)) / itemHeight;
 		crect r = this->listRect;
 		int bottom = r.bottom;
-		r.bottom = r.top+itemHeight;
+		r.bottom = r.top + itemHeight;
 		
-		for (int i = 0; i<n; i++) 
+		for (int i = 0; i < n; i++) 
 		{
 			gc.SetClipRgn(&r);
 			crect r1(r); 
 			r1.left -= xOffset;
 			this->DrawItem(gc, i+first,r1);
-			r.top+=itemHeight;
-			r.bottom+=itemHeight;
+			r.top += itemHeight;
+			r.bottom += itemHeight;
 			if (r.bottom>bottom) r.bottom = bottom;
 		}
 	} else {
@@ -175,47 +217,86 @@ bool VListWin::EventFocus(bool recv)
 
 void VListWin::EventSize(cevent_size *pEvent)
 {
-	this->CalcScroll();
-	MoveFirst(first);
+	RecalcLayouts();
+	CheckPage(true);
+	CalcScroll();
+	if (CheckPage(true))
+		Invalidate();
+	//MoveFirst(first);
 }
 
 bool VListWin::EventMouse(cevent_mouse* pEvent)
 {
 	if (!IsEnabled()) return false;
+			
+	if (!IsCaptured() && !listRect.In(pEvent->Point()))
+	{
+		//сообщение скорее всего передахвачено и передано от другого окна (например от ComboBox)
+		crect rect = ScreenRect();
+		cpoint point = pEvent->Point();
+
+		point.x += rect.left;
+		point.y += rect.top;
+
+		if (vScroll.IsVisible())
+		{
+			rect = vScroll.ScreenRect();
+			if (rect.In(point)){
+				cevent_mouse ev(pEvent->Type(), cpoint(point.x - rect.left, point.y - rect.top), pEvent->Button(), pEvent->ButtonFlag(), pEvent->Mod());
+				return vScroll.EventMouse(&ev);
+			}
+		}
+
+		if (hScroll.IsVisible())
+		{
+			rect = hScroll.ScreenRect();
+			if (rect.In(point)){
+				cevent_mouse ev(pEvent->Type(), cpoint(point.x - rect.left, point.y - rect.top), pEvent->Button(), pEvent->ButtonFlag(), pEvent->Mod());
+				return hScroll.EventMouse(&ev);
+			}
+		}
+
+
+		return true;
+	}
 
 	int n = (pEvent->Point().y - listRect.top)/this->itemHeight + first;
 	
-	if (pEvent->Type() == EV_MOUSE_PRESS) 
+	if (pEvent->Type() == EV_MOUSE_WHEEL) 
 	{
-		if (pEvent->Button() == MB_X1) {
+		if (pEvent->Delta() > 0) 
+		{
 			int n = pageSize / 3;
 			if (n < 1) n = 1;
 			MoveFirst(first - n); 
 			return true;
 		}
 
-		if (pEvent->Button() == MB_X2) {
+		if (pEvent->Delta() < 0 ) 
+		{
 			int n = pageSize / 3;
 			if (n < 1) n = 1;
 			MoveFirst(first + n); 
 			return true;
 		}
+		return true;
 	}
-
 
 	if (pEvent->Type() == EV_MOUSE_PRESS && pEvent->Button() == MB_L && listRect.In(pEvent->Point()))
 	{
 		captureDelta=0;
 		MoveCurrent(n);
-		this->SetCapture();
-		this->SetTimer(0,100);
+		if (this->SetCapture(&captureSD))
+		{
+			this->SetTimer(0,100);
+		}
 		return true;
 	}
 
 	if (pEvent->Type() == EV_MOUSE_DOUBLE)
 	{
 		MoveCurrent(n);
-		Command(CMD_ITEM_CLICK, GetCurrent(), this, 0);
+		Command(CMD_ITEM_DOUBLECLICK, GetCurrent(), this, 0);
 		return true;
 	}
 
@@ -232,8 +313,10 @@ bool VListWin::EventMouse(cevent_mouse* pEvent)
 
 	if (pEvent->Type() == EV_MOUSE_RELEASE && pEvent->Button()==MB_L)
 	{
-		this->ReleaseCapture();
+		if (IsCaptured()) this->ReleaseCapture(&captureSD);
 		this->DelTimer(0);
+
+		Command(CMD_ITEM_CLICK, GetCurrent(), this, 0);
 		return true;
 	}
 
@@ -265,7 +348,7 @@ bool VListWin::EventKey(cevent_key* pEvent)
 		case VK_LEFT: MoveXOffset(xOffset-10); break;
 		case VK_RIGHT: MoveXOffset(xOffset+10); break;
 
-		case VK_RETURN: Command(CMD_ITEM_CLICK, GetCurrent(), this, 0); break; 
+		case VK_RETURN: Command(CMD_ITEM_ENTER, GetCurrent(), this, 0); break; 
 
 		default: return false;
 		}
@@ -287,27 +370,25 @@ void VListWin::MoveCurrent(int n, bool mustVisible)
 {
 	if (selectType == NO_SELECT) 
 		return;
-	
-	
 		
 	int f = first;
 	
-	if (n<0) n = 0; //count-1;
+	if (n < 0) n = 0; //count-1;
 	
 	if (n >= count) 
 		n = count-1; //n = 0;
 		
 	if (mustVisible) 
 	{
-		if (n - f>=pageSize) 
+		if (n - f >= pageSize) 
 		{
-			f = n-pageSize+1;
+			f = n - pageSize + 1;
 		}
-		if (f > n) f=n;
-		if (f<0) f=0;
+		if (f > n) f = n;
+		if (f < 0) f = 0;
 	}
 	
-	bool redraw = (f!=first || n!=current);
+	bool redraw = (f != first || n != current);
 	first = f;
 	
 	bool curChanged = (n != current);
@@ -322,6 +403,14 @@ void VListWin::MoveCurrent(int n, bool mustVisible)
 	
 	if (curChanged) 
 		Command(CMD_ITEM_CHANGED, GetCurrent(), this, 0);
+}
+
+void VListWin::SetNoCurrent()
+{
+	if (current == -1) return;
+	current = -1;
+	Command(CMD_ITEM_CHANGED, GetCurrent(), this, 0);
+	if (IsVisible()) Invalidate();
 }
 
 void VListWin::SetItemSize(int h, int w)

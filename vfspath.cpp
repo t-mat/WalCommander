@@ -305,7 +305,7 @@ void cs_string::copy(const cs_string &a, int cs_id)
 
 //////////////////////////////////////// FSString ///////////////////////////////////
 
-extern unsigned  UnicodeLC(unsigned ch);
+//extern unsigned  UnicodeLC(unsigned ch);
 
 unicode_t FSString::unicode0 = 0;
 char FSString::char0 = 0;

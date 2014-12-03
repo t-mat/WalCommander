@@ -1,0 +1,109 @@
+* { mode3d:0 }
+* {color: 0; background: 0xC0C0C0;; focus-frame-color : 0x00A000; button-color: 0xC0C0C0;; hotkey-color: 0xD0 }
+
+ComboBox, ComboBox EditLine {color:0;  background:0xFFFFFF }
+ComboBox EditLine:parent-focus {color:0xFFFFFF;  background:0x800000 }
+ComboBox * @item {color: 0; background: 0xFFFFFF; }
+ComboBox * @item:current-item {color: 0xFFFFFF; background: 0x800000; }
+
+#variable { color : 0x800000 }
+#value { color : 0x9000 }
+
+Progress { color:0xA00000; frame-color: 0x808080; background: 0xD8E9EC }
+
+
+*@item:current-item:focus	{color: 0xFFFFFF; background: 0x800000; }
+*@item:current-item	{color: 0xFFFFFF; background: 0x808080; }
+*@item			{color: 0; background: 0xFFFFFF; }
+
+ScrollBar { button-color: 0xE0E0E0;  background: 0xC0C0C0; mode3d:1 }
+
+EditLine:!enabled { background: 0xC0C0C0;; }
+EditLine:focus {color: 0; background: 0x909000; mark-color: 0xFFFFFF; mark-background : 0x800000; frame-color: 0xC0C0C0;; }
+EditLine {color: 0; background: 0x909000; frame-color: 0xC0C0C0;; mark-color: 0xFFFFFF; mark-background : 0x808080; }
+
+Panel { color: 0xFFFF80; background: 0x800000; fssize-color: 0x00FF00; }
+Panel@item:exe { color: 0x00FF00 }
+Panel@item:dir { color: 0xFFFFFF }
+Panel@item:hidden { color: 0xFF8080 }
+Panel@item:hidden:selected-panel:current-item { color: 0x804040 }
+Panel@item:bad { color: 0xA0 }
+Panel@item:selected { color: 0x00FFFF }
+Panel@item:selected-panel:current-item { background: 0x808000; } //background: 0xB0B000 }
+Panel@item:selected-panel:current-item:oper-state { background: 0xFF }
+Panel ScrollBar, Viewer ScrollBar, Editor ScrollBar {  background: 0x808000; button-color: 0xA0A000 }
+
+Panel { 
+	border-color1: 0x000000; 
+	border-color2: 0xFFFFFF; 
+	border-color3: 0xFFFFFF; 
+	border-color4: 0x000000;
+	
+	vline-color1: 0xFFFFFF; 
+	vline-color2: 0x707070; 
+	vline-color3: 0x700000;
+	
+	line-color:0xFFFFFF; 
+	summary-color: 0xFFFFFF; 
+}
+
+Panel@footer { color: 0xFFFFFF; background: 0x800000; }
+Panel { summary-color: 0xFFFF00; }
+Panel:have-selected { summary-color: 0xFFFF; }
+Panel:oper-state { summary-color: 0xFF; }
+
+
+ButtonWin { color: 0xFFFFFF; background: 0; }
+ButtonWin Button { color: 0; background: 0xB0B000; }
+
+EditLine#command-line {color: 0xFFFFFF; background: 0; mark-color: 0xFFFFFF; mark-background : 0x800000; }
+
+ToolTip { color: 0; background: 0x80FFFF; }
+
+ToolBar { color: 0; background: 0xB0B000; }
+
+MenuBar, PopupMenu { hotkey-color: 0xFFFF }
+
+MenuBar { color: 0; background: 0xB0B000; current-item-frame-color:0x00FF00; }
+MenuBar:current-item { color: 0xFFFFFF; background: 0;  } 
+
+PopupMenu@item {color: 0xFFFFFF; background: 0xA0A000; pointer-color:0; line:0; } 
+PopupMenu@item:current-item { background: 0x404000; } 
+PopupMenu { background: 0xC0C000; frame-color: 0xFFFFFF; } 
+
+#drive-dlg { background: 0xB0B000; }
+#drive-dlg * { background: 0xB0B000; color: 0xFFFFFF; }
+#drive-dlg * @item { color: 0xFFFFFF; background: 0xB0B000; comment-color: 0xFFFF00; first-char-color:0xFFFF }
+#drive-dlg * @item:current-item { color: 0xFFFFFF;  background: 0; comment-color: 0xFFFF00; first-char-color:0xFFFF }
+
+#messagebox-red { color: 0xFFFFFF; background: 0xFF; }
+#messagebox-red Static { color: 0xFFFFFF; background: 0xFF; }
+
+HelpWin@style-head { color: 0xFFFFFF; }
+HelpWin@style-def  { color: 0xFFFFFF; }
+HelpWin@style-red  { color: 0xFF; }
+HelpWin@style-bold { color: 0xFFFF; }
+HelpWin { background: 0x606000; }
+
+Viewer { background: 0x800000; color:0xFFFFFF; ctrl-color:0xFF0000; 
+	mark-color:	0x0; mark-background: 0xFFFFFF; line-color:0x00FFFF; 
+	hid: 0xB00000; load-background:	0xD00000; load-color: 0xFF;}
+	
+Editor { background: 0x800000; color:0xFFFFFF; mark-background: 0xFFFFFF; mark-color: 0; cursor-color: 0xFFFF00; 
+	DEF:0xFFFFFF; KEYWORD:0x00FFFF; COMMENT:0xFF8080; STRING:0xFFFF00; PRE:0x00FF00; NUM:0xFFFF80; OPER:0x20FFFF; ATTN:0x0000FF; }
+	
+StringWin { color: 0xFFFF00; background: 0; }
+
+EditorHeadWin, ViewerHeadWin { color: 0; background: 0xB0B000; prefix-color:0xFFFFFF; cs-color:0xFFFFFF;}
+
+TabDialog { background: 0x606060; color:0xFFFFFF; }
+TabDialog * { background: 0x606060; color:0xFFFFFF; button-color: 0x808080; }
+TabDialog EditLine { background: 0xD0D0D0; color:0; frame-color: 0x606060; }
+TabDialog *@item:dir {color: 0xFFFF00; background: 0; }
+TabDialog *@item:current-item	{background: 0x808080; }
+TabDialog *@item {color: 0xFFFFFF; background: 0; }
+
+Shortcuts VListWin { color: 0; background: 0xFFFFFF; first-char-color:0xD0; }
+Shortcuts VListWin@item {color: 0; background: 0xFFFFFF; }
+Shortcuts VListWin@item:current-item {color: 0xFFFFFF; background: 0x800000; first-char-color:0xFF; }
+Shortcuts VListWin@item:current-item:!focus {color: 0xFFFFFF; background: 0x808080; }

@@ -269,7 +269,7 @@ namespace wal {
 	}
 	template <class T> inline T* cptr<T>::operator->()
 	{
-		ASSERT(data);
+		//ASSERT(data);
 		return data;
 	}
 

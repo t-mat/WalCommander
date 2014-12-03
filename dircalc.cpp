@@ -150,6 +150,9 @@ static carray<unicode_t> ScanedDirString(const unicode_t *dirName)
 	return carray_cat<unicode_t>(utf8_to_unicode( _LT("Folder:") ).ptr(), utf8_to_unicode(" \"").ptr(), list.ptr(), utf8_to_unicode("\"").ptr());
 }
 
+int uiVariable = GetUiID("variable");
+int uiValue = GetUiID("value");
+
 class DirCalcThreadWin: public NCDialog {
 	OperDirCalcData *pData;
 	Layout lo;
@@ -180,14 +183,14 @@ public:
 		curSumSize(-1),
 		curBadDirs(-1),
 		dirString(0, this, ScanedDirString(dirName).ptr()), 
-		fileCountName(0, this, utf8_to_unicode( _LT("Files:") ).ptr()), 
-		fileCountNum(0, this, utf8_to_unicode("AAAAAAAAAA").ptr()), 
-		folderCountName(0, this, utf8_to_unicode(_LT("Folders:") ).ptr()), 
-		folderCountNum(0, this, utf8_to_unicode("AAAAAAAAAA").ptr()), 
-		sumSizeName(0, this, utf8_to_unicode( _LT("Files size:") ).ptr()), 
-		sumSizeNum(0, this, utf8_to_unicode("AAAAAAAAAAAAAAAAAAAA").ptr()),
-		badDirsName(0, this, utf8_to_unicode( _LT("Not readable folders:") ).ptr()), 
-		badDirsNum(0, this, utf8_to_unicode("AAAAAAAAAA").ptr())
+		fileCountName(uiVariable, this, utf8_to_unicode( _LT("Files:") ).ptr()), 
+		fileCountNum(uiValue, this, utf8_to_unicode("AAAAAAAAAA").ptr()), 
+		folderCountName(uiVariable, this, utf8_to_unicode(_LT("Folders:") ).ptr()), 
+		folderCountNum(uiValue, this, utf8_to_unicode("AAAAAAAAAA").ptr()), 
+		sumSizeName(uiVariable, this, utf8_to_unicode( _LT("Files size:") ).ptr()), 
+		sumSizeNum(uiValue, this, utf8_to_unicode("AAAAAAAAAAAAAAAAAAAA").ptr()),
+		badDirsName(uiVariable, this, utf8_to_unicode( _LT("Not readable folders:") ).ptr()), 
+		badDirsNum(uiValue, this, utf8_to_unicode("AAAAAAAAAA").ptr())
 	{
 		lo.AddWin(&dirString, 0, 0, 0, 3);
 		lo.AddWin(&cPathWin, 9, 0, 9, 3);

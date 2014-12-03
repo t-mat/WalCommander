@@ -110,6 +110,11 @@ void TextList::SetHeightRange(LSRange range)
 	range.minimal*=fontH;
 	range.maximal*=fontH;
 	range.ideal*=fontH;
+
+	range.minimal += 10;
+	range.maximal += 10;
+	range.ideal += 10;
+
 	s.y = range;
 	SetLSize(s);
 }

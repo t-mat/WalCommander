@@ -456,11 +456,10 @@ bool TerminalWin::EventMouse(cevent_mouse* pEvent)
 			Invalidate();
 		}
 		break;
-	
-	case EV_MOUSE_DOUBLE:
-	case EV_MOUSE_PRESS:
+		
+	case EV_MOUSE_WHEEL:
 		{
-			if (pEvent->Button() == MB_X1) 
+			if (pEvent->Delta() > 0) 
 			{
 				PageUp();
 				
@@ -474,7 +473,7 @@ bool TerminalWin::EventMouse(cevent_mouse* pEvent)
 				break;
 			}
 
-			if (pEvent->Button()==MB_X2) 
+			if (pEvent->Delta() < 0) 
 			{
 				PageDown();
 				
@@ -487,7 +486,12 @@ bool TerminalWin::EventMouse(cevent_mouse* pEvent)
 				
 				break;
 			}
-			
+		}
+		break;	
+		
+	case EV_MOUSE_DOUBLE:
+	case EV_MOUSE_PRESS:
+		{
 			if (pEvent->Button()!=MB_L) 
 				break;
 

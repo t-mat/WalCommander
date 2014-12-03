@@ -79,6 +79,8 @@ bool MenuBar::EventMouse(cevent_mouse* pEvent)
 	int n;
 	if (pEvent->Type() == EV_MOUSE_PRESS)
 	{
+		if (!InFocus()) SetFocus();
+		
 		n = GetPointItem(pEvent->Point());
 		if (n>=0) {
 			SetSelect(n);
@@ -147,9 +149,33 @@ bool MenuBar::EventKey(cevent_key* pEvent)
 	return false;
 }
 
+bool MenuBar::EventKeyPost(Win *focusWin, cevent_key* pEvent)
+{
+	if (!InFocus() || pEvent->Type() != EV_KEYDOWN) return false;
+	
+	if (sub.ptr() && sub->EventKeyPost(focusWin, pEvent)) return true;
+	
+	for (int i = 0; i < list.count(); i++)
+	{
+		if (list[i].text.ptr())
+		{
+			unicode_t key = HkStringKey(list[i].text.ptr());
+			if (key && UnicodeUC(key) == UnicodeUC(pEvent->Char()) )
+			{
+				SetSelect(i);
+				OpenSub();
+				return true;
+			}
+		}
+	}
+
+	return true;
+}
+
 bool MenuBar::EventFocus(bool recv)
 {
 	if (recv) {
+		Invalidate();
 		if (select<0 || select>=list.count()) SetSelect(0);
 	} else 
 		if (!sub.ptr())
@@ -196,6 +222,7 @@ void MenuBar::DrawItem(GC &gc, int n)
 	if (n == select && InFocus()) ucl.Set(uiCurrentItem, true);
 		
 	int color_text = UiGetColor(uiColor, uiItem, &ucl, 0x0);
+	int color_hotkey = (InFocus()) ? UiGetColor(uiHotkeyColor, uiItem, &ucl, 0xFF) : color_text;
 	int color_bg = UiGetColor(uiBackground, uiItem, &ucl, 0xFFFFFF);
 
 	gc.Set(GetFont());
@@ -211,14 +238,20 @@ void MenuBar::DrawItem(GC &gc, int n)
 	gc.SetTextColor( color_text );
 	
 	const unicode_t *text = list[n].text.ptr();
-	cpoint tsize = gc.GetTextExtents(text);
+	cpoint tsize = HkStringGetTextExtents(gc, text);//gc.GetTextExtents(text);
 	int x = itemRect.left + (itemRect.Width()-tsize.x)/2;
 	int y = itemRect.top + (itemRect.Height()-tsize.y)/2;
 	
+//void HkStringTextOutF(GC& gc, int x, int y, const unicode_t *str, int color_text, int color_hotkey);
+//cpoint HkStringGetTextExtents(GC& gc, const unicode_t *str);
+	
+	
 #ifdef _WIN32	
-	gc.TextOut(x,y,text);
+	HkStringTextOut(gc, x, y, text, color_text, color_hotkey);
+//	gc.TextOut(x,y,text);
 #else	
-	gc.TextOutF(x,y,text);
+	HkStringTextOutF(gc, x, y, text, color_text, color_hotkey);
+//	gc.TextOutF(x,y,text);
 #endif	
 }
 
@@ -244,7 +277,7 @@ crect MenuBar::ItemRect(int n)
 		int x = 1;
 		for (int i = 0; i<list.count(); i++)
 		{
-			cpoint textSize = gc.GetTextExtents(list[i].text.ptr());
+			cpoint textSize = HkStringGetTextExtents(gc, list[i].text.ptr());//gc.GetTextExtents(list[i].text.ptr());
 			int x2 = x + textSize.x + spaceWidth*2 + 2 ;
 			crect itemRect(x, 1, x2 , wRect.bottom-1);
 			x = x2;
@@ -288,8 +321,16 @@ void MenuBar::Paint(GC &gc, const crect &paintRect)
 	crect rect = ClientRect();
 
 	unsigned color  = UiGetColor(uiBackground, 0, 0, 0xFFFFFF);
-	unsigned bColor = ColorTone(color, -50), aColor = ColorTone(color,+50);
-	FillHorisontalRect(gc, rect, aColor, bColor);
+	bool mode3d  = UiGetBool(ui3d, 0, 0, true);
+	
+	if (mode3d) {
+		unsigned bColor = ColorTone(color, -50), aColor = ColorTone(color,+50);
+		FillHorisontalRect(gc, rect, aColor, bColor);
+	} else {
+		gc.SetFillColor(color);
+		gc.FillRect(rect);
+		DrawBorder(gc, rect, ColorTone(color, -100));
+	}
 
 	for (int i = 0; i<list.count(); i++)
 		DrawItem(gc,i);

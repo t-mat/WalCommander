@@ -22,7 +22,9 @@ extern int uiClassToolTip;
 
 enum BASE_COMMANDS {
 	_CMD_BASE_BEGIN_POINT_ = -99,
-	CMD_ITEM_CLICK,		//может случаться в объектах с подэлементами при нажатии enter или doubleclick (например VList)
+	CMD_ITEM_CLICK,	//one mouse click
+	CMD_ITEM_DOUBLECLICK,	
+	CMD_ITEM_ENTER,	//enter key
 	CMD_ITEM_CHANGED,
 	CMD_SBUTTON_INFO,	//with subcommands
 	CMD_SCROLL_INFO,		//with subcommands
@@ -42,7 +44,7 @@ class Button: public Win {
 	wal::carray<unicode_t> text;
 	cptr<cicon> icon;
 	int commandId;
-
+	int key;
 	void SendCommand(){ Command(commandId, 0, this, 0); }
 public:
 	Button(int nId, Win *parent, const unicode_t *txt,  int id, crect *rect = 0, int iconX = 16, int iconY = 16);
@@ -52,6 +54,7 @@ public:
 	virtual bool EventFocus(bool recv);
 	virtual bool EventMouse(cevent_mouse* pEvent);
 	virtual bool EventKey(cevent_key* pEvent);
+	virtual bool EventKeyPost(Win *focusWin, cevent_key* pEvent);
 	virtual void OnChangeStyles();
 	virtual int UiGetClassId();
 	virtual ~Button();
@@ -68,6 +71,7 @@ class SButton: public Win {
 	bool isSet;
 	carray<unicode_t> text;
 	int group;
+	int key;
 public:
 	SButton(int nId, Win *parent, unicode_t *txt, int _group, bool _isSet=false, crect *rect = 0);
 
@@ -76,6 +80,7 @@ public:
 	virtual void Paint(GC &gc, const crect &paintRect);
 	virtual bool EventMouse(cevent_mouse* pEvent);
 	virtual bool EventKey(cevent_key* pEvent);
+	virtual bool EventKeyPost(Win *focusWin, cevent_key* pEvent);
 	virtual bool EventFocus(bool recv);
 	virtual bool Broadcast(int id, int subId, Win *win, void *data);
 	virtual int UiGetClassId();
@@ -142,12 +147,22 @@ enum EditLineCmd {
 
 
 class EditLine: public Win {
+public:
+	enum FLAGS {
+		USEPARENTFOCUS = 1,
+		READONLY = 2
+	};
+private:
+	unsigned _flags;
+	bool RO() const { return (_flags & READONLY) != 0; }
 	EditBuf text;
 	int _chars;
 	bool cursorVisible;
 	bool passwordMode;
 	int first;
 	bool frame3d;
+	CaptureSD captureSD;
+
 	void DrawCursor(GC &gc);
 	bool CheckCursorPos(); //true - РµСЃР»Рё РЅСѓР¶РЅР° РїРµСЂРµСЂРёСЃРѕРІРєР°
 	void ClipboardCopy();
@@ -155,8 +170,9 @@ class EditLine: public Win {
 	void ClipboardCut();
 	int GetCharPos(cpoint p);
 	void Changed(){ if (Parent()) Parent()->Command(CMD_EDITLINE_INFO, SCMD_EDITLINE_CHANGED, this, 0); }
+	bool NeedDrawFocus();
 public:
-	EditLine(int nId, Win *parent, const crect *rect, const unicode_t *txt, int chars = 10, bool frame = true);
+	EditLine(int nId, Win *parent, const crect *rect, const unicode_t *txt, int chars = 10, bool frame = true, unsigned flags = 0);
 	virtual void Paint(GC &gc, const crect &paintRect);
 	virtual bool EventMouse(cevent_mouse* pEvent);
 	virtual bool EventKey(cevent_key* pEvent);
@@ -186,6 +202,20 @@ public:
 	void SetText(const unicode_t *txt){ text = wal::new_unicode_str(txt); Invalidate(); }
 	virtual int UiGetClassId();
 	virtual ~StaticLine();
+};
+
+//hot key line
+class HKStaticLine: public Win {
+	int key;
+	wal::carray<unicode_t> text;
+	Win *controlWin;
+public:
+	HKStaticLine(int nId, Win *parent, const unicode_t *txt, crect *rect = 0);
+	void SetControlWin(Win *w){ controlWin = w; if (IsVisible()) Invalidate(); }
+	virtual bool EventKeyPost(Win *focusWin, cevent_key* pEvent);
+	virtual int UiGetClassId();
+	virtual void Paint(GC &gc, const crect &paintRect);
+	virtual ~HKStaticLine();
 };
 
 enum ScrollCmd {
@@ -231,6 +261,8 @@ class ScrollBar: public Win {
 
 	Win *managedWin;
 
+	CaptureSD captureSD;
+
 	void Recalc(cpoint *newSize=0);
 	void SendManagedCmd(int subId, void *data);
 public:
@@ -268,6 +300,8 @@ private:
 	unsigned borderColor; //used only for SINGLE_BORDER
 	unsigned bgColor; //for 3d border and scroll block
 
+	CaptureSD captureSD;
+
 	ScrollBar vScroll;
 	ScrollBar hScroll;
 
@@ -277,7 +311,7 @@ private:
 	crect scrollRect;
 
 	IntList selectList;
-
+	bool CheckPage(bool mustVisibge);
 protected:
 	void SetCount(int);
 	void SetItemSize(int h, int w);
@@ -297,6 +331,7 @@ public:
 	void MoveCurrent(int n, bool mustVisible=true);
 	void MoveFirst(int n);
 	void MoveXOffset(int n);
+	void SetNoCurrent();
 
 	int GetCurrent() const { return current; }
 	int GetPageFirstItem() const { return first; }
@@ -316,6 +351,7 @@ public:
 	virtual bool Command(int id, int subId, Win *win, void *data);
 	virtual void EventTimer(int tid);
 	virtual int UiGetClassId();
+	virtual ~VListWin();
 };
 
 
@@ -424,6 +460,7 @@ public:
 	PopupMenu(int nId, Win*parent, MenuData *d, int x, int y, Win *_cmdOwner=0);
 	virtual bool EventMouse(cevent_mouse* pEvent);
 	virtual bool EventKey(cevent_key* pEvent);
+	virtual bool EventKeyPost(Win *focusWin, cevent_key* pEvent);
 	virtual void Paint(GC &gc, const crect &paintRect);
 	virtual bool Command(int id, int subId, Win *win, void *data);
 	virtual int UiGetClassId();
@@ -457,6 +494,7 @@ public:
 	void Paint(GC &gc, const crect &paintRect);
 	virtual bool EventMouse(cevent_mouse* pEvent);
 	virtual bool EventKey(cevent_key* pEvent);
+	virtual bool EventKeyPost(Win *focusWin, cevent_key* pEvent);
 	virtual bool Command(int id, int subId, Win *win, void *d);
 	virtual bool EventFocus(bool recv);
 	virtual void EventEnterLeave(cevent *pEvent);
@@ -469,12 +507,68 @@ public:
 	virtual ~MenuBar();
 };
 
+////////////////////////// ComboBox
+
+class ComboBox:public Win {
+public:
+	enum FLAGS {
+		MODE_UP  = 1,
+		READONLY = 2,
+		FRAME3D  = 4
+	};
+private:
+	unsigned _flags;
+	CaptureSD captureSD;
+	Layout _lo;
+	struct Node {
+		carray<unicode_t> text;
+		void *data;
+	};
+	EditLine _edit;
+	crect _buttonRect;
+	ccollect<Node, 0x100> _list;
+	cptr<TextList> _box;
+	int _cols;
+	int _rows;
+	int _current;
+
+	void OpenBox();
+	void CloseBox();
+
+public:
+	ComboBox(int nId, Win *parent, int cols, int rows, unsigned flags = 0,  crect *rect = 0);
+	virtual void Paint(GC &gc, const crect &paintRect);
+	virtual bool EventMouse(cevent_mouse* pEvent);
+	virtual bool EventKey(cevent_key* pEvent);
+	virtual bool EventFocus(bool recv);
+	virtual bool Command(int id, int subId, Win *win, void *d);
+	virtual void OnChangeStyles();
+	virtual int UiGetClassId();
+	void Clear();
+	void Append(const unicode_t *text, void *data = 0);
+	void Append(const char *text, void *data = 0);
+
+	carray<unicode_t> GetText();
+	int Count() const { return _list.count(); }
+	int Current() const { return _current; }
+	const unicode_t* ItemText(int n);
+	void * ItemData(int n);
+	void MoveCurrent(int n);
+	
+	virtual ~ComboBox();
+};
+
+
 
 //ToolTip РѕРґРёРЅ РЅР° РІСЃРµ РїСЂРёР»РѕР¶РµРЅРёРµ, РїРѕСЌС‚РѕРјСѓ СѓСЃС‚Р°РЅРѕРІРєР° РЅРѕРІРѕРіРѕ, СѓРґР°Р»СЏРµС‚ РїСЂРµРґС‹РґСѓС‰РёР№
 void ToolTipShow(Win *w, int x, int y, const unicode_t *s);
 void ToolTipShow(int x, int y, const char *s);
 void ToolTipHide();
 
+void HkStringTextOut(GC& gc, int x, int y, const unicode_t *str, int color_text, int color_hotkey);
+void HkStringTextOutF(GC& gc, int x, int y, const unicode_t *str, int color_text, int color_hotkey);
+cpoint HkStringGetTextExtents(GC& gc, const unicode_t *str);
+unicode_t HkStringKey(const unicode_t *str);
 
 }; // namespace wal
 

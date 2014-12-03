@@ -263,12 +263,29 @@ bool Win::Event(cevent *pEvent)
 		case EV_SHOW: return EventShow(((cevent_show*)pEvent)->Show());
 
 		case EV_MOUSE_PRESS:
-			if ( (whint & WH_CLICKFOCUS)!=0 && !InFocus()) 
-				SetFocus();
+			if ( (whint & WH_CLICKFOCUS)!=0) {
+				if (!InFocus()) 
+				{
+					SetFocus();
+					return EventMouse((cevent_mouse*)pEvent);
+				}
+			} else {
+				Win *p = Parent();
+				if (p) {
+					while (p->Parent()) p = p->Parent();
+
+					if ( (p->whint & WH_CLICKFOCUS)!=0 && !p->InFocus()) 
+					{
+						p->SetFocus();
+						return EventMouse((cevent_mouse*)pEvent);
+					}
+				}
+			}
 			
 		case EV_MOUSE_MOVE:
 		case EV_MOUSE_RELEASE:
 		case EV_MOUSE_DOUBLE:
+		case EV_MOUSE_WHEEL:
 			return EventMouse((cevent_mouse*)pEvent);
 
 		case EV_ENTER:
@@ -297,6 +314,32 @@ bool Win::Event(cevent *pEvent)
 bool Win::EventMouse(cevent_mouse* pEvent){	return false; }
 bool Win::EventKey(cevent_key* pEvent){	return false;}
 bool Win::EventChildKey(Win *child, cevent_key* pEvent){	return false;}
+
+bool Win::DoKeyPost( cevent_key* pEvent)
+{
+	Win *p = Parent();
+	//if (IsModal() || !p) return EventKeyPost(this, pEvent);
+	
+	for (Win *p = Parent(); p ; p=p->Parent()) 
+	{
+		for (int i = 0; i < p->childList.count(); i++)
+		{
+			Win *w = p->childList[i];
+			if (w && w->IsEnabled() && w->IsVisible() && w->EventKeyPost(this, pEvent))
+				return true;
+		}
+		if (p->IsModal()) break;
+	}
+	if (p) 
+		return p->EventKeyPost(this, pEvent);
+		
+	return false;
+}
+
+bool Win::EventKeyPost(Win *focusWin, cevent_key* pEvent)
+{
+	return false;
+}
 
 bool Win::EventFocus(bool recv)
 { 

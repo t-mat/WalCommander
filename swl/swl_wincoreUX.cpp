@@ -41,6 +41,7 @@ static Atom 		atom_WM_DELETE_WINDOW = 0; //РђС‚РѕРј, С‡С‚РѕР± window manager РЅР
 
 //WinID		Win::focusWinId =0;
 static WinID		activeWinId = 0;
+static WinID		captureWinId = 0;
 
 //static SCImage winIcon;
 static Pixmap winIconPixmap = None;
@@ -501,8 +502,10 @@ static void DoKeyEvent(int type, Win *w, KeySym ks, unsigned km,  unicode_t ch)
 	if (w->Type()!=Win::WT_MAIN && ChildKeyRecursive(w->Parent(), w, &ev))
 			return;
 
-	if (!w->IsEnabled()) return;
-	w->EventKey(&ev);
+	if (w->IsEnabled() && w->EventKey(&ev))
+		return;
+		
+	w->DoKeyPost(&ev);
 }
 
 void KeyEvent(int type, XKeyEvent *event)
@@ -625,8 +628,16 @@ int DoEvents(XEvent *event) //return count of windows
 			case Button1: button = MB_L;  break;
 			case Button2: button = MB_M;  break;
 			case Button3: button = MB_R;  break;
-			case Button4: button = MB_X1;  break;
-			case Button5: button = MB_X2;  break;
+			
+			case Button4: 	//button = MB_X1;  break;
+			case Button5: 	//button = MB_X2;  break;
+				if (event->type == ButtonPress) //ignore ButtonRelease
+				{
+					cevent_mouse evm(EV_MOUSE_WHEEL, cpoint(xPos,yPos), button, bf, km, 
+						e->button == Button4 ? +1 : -1);
+					w->Event(&evm);
+				}
+				return 1;	
 			}
 
 			
@@ -652,8 +663,6 @@ int DoEvents(XEvent *event) //return count of windows
 
 
 			cevent_mouse evm(type, cpoint(xPos,yPos), button, bf, km);
-
-
 			w->Event(&evm);
 		}
 		break;
@@ -2128,30 +2137,49 @@ void Win::Move(crect rect, bool repaint)
 	if (repaint) Invalidate();
 }
 
-void Win::SetCapture()
+static bool GrabPointer(Window handle)
 {
-	if (!captured)
-	{
-		if (::XGrabPointer(display, handle, False, 
+	return 	::XGrabPointer(display, handle, False, 
 			ButtonPressMask 	|	
 			ButtonReleaseMask 	|	
 			PointerMotionMask,
 			GrabModeAsync, GrabModeAsync,
-	                None, None, CurrentTime) == GrabSuccess)
+			None, None, CurrentTime) == GrabSuccess;
+}
+
+bool Win::SetCapture(CaptureSD *sd)
+{
+	if (!captured)
+	{
+		if (captureWinId) 
+		{
+			if (sd) sd->h = captureWinId;
+			::XUngrabPointer(display, CurrentTime);
+			captureWinId = 0;
+		}
+		
+		if (GrabPointer(handle))
 		{
 			//dbg_printf("Captured %p\n", this);
 			captured = true;
+			captureWinId = handle;
+			return true;
 		}
 	}
+	return false;
 }
 
-void Win::ReleaseCapture()
+void Win::ReleaseCapture(CaptureSD *sd)
 {
 	if (captured)
 	{
 		::XUngrabPointer(display, CurrentTime);
 		//dbg_printf("UnCaptured %p\n", this);
 		captured = false;
+		if (sd && sd->h && GrabPointer(sd->h))
+			captureWinId = sd->h;
+		else 
+			captureWinId = 0;
 	} 
 }
 
@@ -2339,6 +2367,9 @@ void Win::ClientToScreen(int *x, int *y)
 
 Win::~Win()
 {
+	if (captureWinId == handle)
+		captureWinId = 0;	
+	
 	wth_DropWindow(this);
 
 	if (modal) // ???? может и не надо

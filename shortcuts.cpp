@@ -13,7 +13,7 @@
 #include "wcm-config.h"
 #include "ltext.h"
 
-extern unsigned  UnicodeLC(unsigned ch);
+//extern unsigned  UnicodeLC(unsigned ch);
 
 
 inline int CmpNoCase(const unicode_t *a, const unicode_t *b)
@@ -343,7 +343,7 @@ void ShortcutWin::Selected()
 
 bool ShortcutWin::Command(int id, int subId, Win *win, void *data)
 {
-	if (id == CMD_ITEM_CLICK && win == &listWin)
+	if (id == CMD_ITEM_DOUBLECLICK && win == &listWin)
 	{
 		Selected();
 		return true;

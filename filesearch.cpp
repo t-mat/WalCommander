@@ -77,7 +77,7 @@ public:
 	virtual ~OperSearchThread();
 };
 
-extern unsigned  UnicodeLC(unsigned ch); ///!!!
+//extern unsigned  UnicodeLC(unsigned ch); ///!!!
 
 static bool accmask_nocase(const unicode_t *name, const unicode_t *mask)
 {
@@ -565,7 +565,7 @@ void SearchFileThreadWin::OperThreadSignal(int info)
 
 bool SearchFileThreadWin::Command(int id, int subId, Win *win, void *data)
 {
-	if (id == CMD_ITEM_CLICK && win == &listWin)
+	if ( (id == CMD_ITEM_DOUBLECLICK || id == CMD_ITEM_ENTER) && win == &listWin)
 		EndModal(CMD_OK);
 	return NCDialog::Command(id, subId, win, data);
 }
@@ -609,6 +609,7 @@ void SearchFileThreadFunc(OperThreadNode *node)
 }
 
 static SearchFileParams searchFileParams;
+void SetCommonSearchParams(const unicode_t *searchString, bool sens);
 
 bool SearchFile(FSPtr f, FSPath p, NCDialogParent *parent, FSPath *retPath)
 {
@@ -616,6 +617,8 @@ bool SearchFile(FSPtr f, FSPath p, NCDialogParent *parent, FSPath *retPath)
 		return false;
 		
 	if (!searchFileParams.mask.ptr() || !searchFileParams.mask[0]) return false;
+
+	SetCommonSearchParams(searchFileParams.txt.ptr(), searchFileParams.sens);
 
 	carray<char> utf8Mask = unicode_to_utf8(searchFileParams.mask.ptr());
 	

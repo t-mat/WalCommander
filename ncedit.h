@@ -15,7 +15,7 @@ using namespace wal;
 
 extern int uiClassEditor;
 
-extern unsigned  UnicodeLC(unsigned ch);
+//extern unsigned  UnicodeLC(unsigned ch);
 
 enum NCEditorInfo {
 	CMD_NCEDIT_INFO		= -100,
@@ -212,6 +212,12 @@ struct EditPoint {
 	bool operator == (const EditPoint &a) const { return line==a.line && pos==a.pos; }
 };
 
+struct EditFullPosition {
+	int firstLine;
+	EditPoint point;
+	EditFullPosition():firstLine(0){}
+	EditFullPosition(int first, const EditPoint &a):firstLine(first), point(a){}
+};
 
 ///////////////////////// Undo
 
@@ -577,6 +583,9 @@ public:
 	
 	EditPoint GetCursorPos(){ return cursor; }
 	void SetCursorPos(EditPoint p);
+	
+	EditFullPosition GetFullPosition(){ return EditFullPosition( firstLine, cursor ); }
+	void SetFullPosition(EditFullPosition  p);
 	
 	int GetCursorCol();
 	int GetCursorLine(){ return cursor.line; }

@@ -76,7 +76,7 @@ bool PanelSearchWin::Command(int id, int subId, Win *win, void *data)
 	{
 		carray<unicode_t> text = _edit.GetText();
 		
-		if (!_parent->Search(text.ptr()))
+		if (!_parent->Search(text.ptr(), false) )
 		{
 			unicode_t empty = 0;
 			_edit.SetText(oldMask.ptr() ? oldMask.ptr() : &empty);
@@ -119,11 +119,34 @@ bool PanelSearchWin::EventMouse(cevent_mouse* pEvent)
 bool PanelSearchWin::EventChildKey(Win* child, cevent_key* pEvent)
 {
 	if (pEvent->Type() != EV_KEYDOWN) return false;
+
+//Invalidate();
+//OnTop();
+/*{
+WINDOWINFO inf;
+inf.cbSize = sizeof(inf);
+GetWindowInfo( GetID(), &inf);
+if ( (inf.dwStyle & WS_CLIPCHILDREN) && (inf.dwStyle & WS_CLIPSIBLINGS))
+	printf("");
+}*/
+
+	bool ctrl = ( pEvent->Mod() & KM_CTRL ) != 0;
+
+	if ( ctrl && pEvent->Key() == VK_RETURN )
+	{
+		_parent->Search( _edit.GetText().ptr(), true );
+		return false;
+	}
 	
 	wchar_t c = pEvent->Char();
 	if (c && c>=0x20) return false;
+
 	
 	switch (pEvent->Key()) {
+#ifdef _WIN32	
+		case VK_CONTROL:
+		case VK_SHIFT:
+#endif
 		case VK_LCONTROL:
 		case VK_LSHIFT:
 		case VK_LMENU:
@@ -151,6 +174,7 @@ bool PanelSearchWin::EventShow(bool show)
 		r.right = r.left + ls.x.minimal;
 		r.bottom = r.top + ls.y.minimal;
 		Move(r, true);
+	//	this->OnTop();
 		_edit.SetFocus();
 		SetCapture();
 	} else
@@ -206,14 +230,17 @@ static bool accmask_nocase_begin(const unicode_t *name, const unicode_t *mask)
 }
 
 
-bool PanelWin::Search(unicode_t *mask)
+bool PanelWin::Search(unicode_t *mask, bool nextSearch)
 {
+	if (!mask || !mask[0]) return true;
+	
 	int cur = Current();
 	int cnt = Count();
 	
 	int i;
-	
-	for (i = cur; i < cnt; i++)
+	int delta = nextSearch ? 1 : 0;
+
+	for (i = cur + delta; i < cnt; i++)
 	{
 		const unicode_t *name = _list.GetFileName(i);;
 		if (name && accmask_nocase_begin(name, mask)) {
@@ -222,7 +249,7 @@ bool PanelWin::Search(unicode_t *mask)
 		}
 	}
 	
-	for (i = 0; i < cnt-1; i++)
+	for (i = 0; i < cnt - 1 + delta; i++)
 	{
 		const unicode_t *name = _list.GetFileName(i);
 		if (name && accmask_nocase_begin(name, mask)) {
@@ -682,6 +709,7 @@ void PanelWin::DrawItem(wal::GC &gc,  int n)
 	int color_text = UiGetColor(uiColor, uiItem, &ucl, 0x0);
 	int color_bg = UiGetColor(uiBackground, uiItem, &ucl, 0xFFFFFF);
 	int color_shadow = UiGetColor(uiBackground, uiItem, &ucl, 0);
+	bool mode3d = UiGetBool(ui3d, uiItem, &ucl, false);
 
 	gc.SetFillColor(color_bg);
 	
@@ -692,7 +720,7 @@ void PanelWin::DrawItem(wal::GC &gc,  int n)
 	
 	if (n<0 || n>=_list.Count()) return;
 
-	if (active) 
+	if (mode3d) 
 		Draw3DButtonW2(gc, rect, color_bg, true);
 
 
@@ -743,7 +771,7 @@ void PanelWin::DrawItem(wal::GC &gc,  int n)
 	
 	x += 4;
 	
-	if (isSelected)
+	if (mode3d)
 	{
 		gc.SetTextColor(color_shadow);
 		gc.TextOut(x+1, y+1, _list.GetFileName(n));
@@ -835,7 +863,7 @@ void PanelWin::DrawItem(wal::GC &gc,  int n)
 	}
 
 	
-	if (active)
+	if (mode3d)
 	{
 		gc.TextOut(x, y, _list.GetFileName(n));
 	} else 
@@ -869,10 +897,10 @@ void PanelWin::SetCurrent(int n, bool shift, int *selectType)
 		else {
 			int count, delta;
 			if (old < _current) {
-				count = _current-old+1;
+				count = _current-old;
 				delta = 1;
 			} else {
-				count = old-_current+1;
+				count = old-_current;
 				delta = -1;
 			}
 			for (int i = old; count > 0; count--, i+=delta)
@@ -952,10 +980,74 @@ void DrawTextRightAligh(wal::GC &gc, int x, int y, const unicode_t *txt, int wid
 	
 }
 
+#define TER (int64(1024)*1024*1024*1024)
+#define GIG (int64(1024)*1024*1024)
+#define MEG (int64(1024)*1024)
+#define KIL (1024)
+
+static char* GetSmallPrintableSizeStr(char buf[64], int64 size)
+{
+	char str[16];
+	str[0] = 0;
+	
+	int64 num = size;
+	int mod = 0;
+	
+	if (num >= TER)
+	{
+		mod = (num % TER)/(TER/10);
+		num /= TER;
+		str[0] =' ';
+		str[1] ='T';
+		str[2] =0;
+	} else 
+	if (num >= GIG)
+	{
+		mod = (num % GIG)/(GIG/10);
+		num /= GIG;
+		str[0] =' ';
+		str[1] ='G';
+		str[2] =0;
+	} else 
+	if (num >= MEG)
+	{
+		mod = (num % MEG)/(MEG/10);
+		num /= MEG;
+		str[0] =' ';
+		str[1] ='M';
+		str[2] =0;
+	} else 
+	if (num >= KIL)
+	{
+		mod = (num % KIL)/(KIL/10);
+		num /= KIL;
+		str[0] =' ';
+		str[1] ='M';
+		str[2] =0;
+	} else mod = -1;
+	
+
+	char dig[64];
+	char *t = unsigned_to_char<int64>(num, dig);
+	if (mod>=0) { t--; t[0]='.'; t[1]=mod+'0'; t[2]=0; }
+	
+	char *us = buf;
+	for (char *s = dig; *s; s++)
+		*(us++) = *s;
+	
+	for (char *t = str; *t; t++)
+		*(us++) = *t;
+		
+	*us = 0;
+	
+	return buf;
+}
+
 static int uiFooter = GetUiID("footer");
 static int uiHeader = GetUiID("header");
 static int uiHaveSelected = GetUiID("have-selected");
 static int uiSummary = GetUiID("summary-color");
+static int uiFsSizeColor = GetUiID("fssize-color");
 
 void PanelWin::DrawFooter(wal::GC &gc)
 {
@@ -1004,21 +1096,43 @@ void PanelWin::DrawFooter(wal::GC &gc)
 		if (hiddenCount) sprintf(b3, _LT("(%i hidden)"), hiddenCount);
 		
 		char b2[128];
-				if (selectedCn.count)
+		
+		if (selectedCn.count)
 			sprintf(b2, _LT("%s bytes in %i selected files%s"), b11, selectedCn.count, b3);
 		else
 			sprintf(b2, _LT("%s bytes in %i files%s"), b11, filesCn.count, b3);
 			
 			
 		unicode_t ub[512];
-		
 		utf8_to_unicode( ub, b2);
+		cpoint size = gc.GetTextExtents(ub);
+		
+		unicode_t uds[512];
+		uds[0] = 0;
+		cpoint ds_size(0,0);
+		
+		if (_vst.size >= 0 && _vst.avail >=0)
+		{
+			char bAvail[100]; GetSmallPrintableSizeStr(bAvail, _vst.avail );
+		
+			char buf[0x100] = "";
+			int percent = _vst.size ? (_vst.avail*100) /_vst.size  : 0;
+			
+			utf8_to_unicode( uds, bAvail);
+			ds_size = gc.GetTextExtents(uds);
+		}
+		
+		int x = ( tRect.Width()- size.x - ds_size.x)/2;
+		if (x < 10) x = 10;
 		
 		gc.SetTextColor(UiGetColor(uiSummary, uiFooter, &ucl, 0xFF));
-		cpoint size = gc.GetTextExtents(ub);
-		int x = (tRect.Width()-size.x)/2;
-		if (x < 10) x = 10;
 		gc.TextOutF(x, tRect.top + 3, ub);
+		
+		if (ds_size.x > 0) 
+		{
+			gc.SetTextColor(UiGetColor(uiFsSizeColor, uiFooter, &ucl, 0xFF));
+			gc.TextOutF(tRect.right - ds_size.x - 5, tRect.top + 3, uds);
+		}
 	}
 
 	if (cur) 
@@ -1035,7 +1149,7 @@ void PanelWin::DrawFooter(wal::GC &gc)
 			unicode_t ubuf[64];
 			cur->st.GetPrintableSizeStr(ubuf);
 			cpoint size = gc.GetTextExtents(ubuf);
-			gc.TextOutF(tRect.right-size.x, y, ubuf);
+			gc.TextOutF(tRect.right - size.x -5 , y, ubuf);
 			sizeTextW = size.x;
 		}
 	
@@ -1098,9 +1212,9 @@ void PanelWin::DrawFooter(wal::GC &gc)
 
 			cur->st.GetMTimeStr(ubuf);
 			size = gc.GetTextExtents(ubuf);
-			gc.TextOutF(tRect.right-size.x, y, ubuf);
+			gc.TextOutF(tRect.right - size.x - 5 , y, ubuf);
 		}
-	}	
+	}
 }
 
 static int uiBorderColor1 = GetUiID("border-color1");
@@ -1258,6 +1372,8 @@ void PanelWin::OperThreadStopped()
 		default:
 			_place.Set(_operData.fs, _operData.path, false); break;
 		};
+		
+		_vst = _operData.vst;
 	
 		_list.SetData(list);
 		if (selected.ptr()) {
@@ -1279,15 +1395,27 @@ void PanelWin::OperThreadStopped()
 	Invalidate();
 }
 
+void PanelWin::Reread(FSString *current)
+{
+	cptr<cstrhash<bool,unicode_t> > sHash = _list.GetSelectedHash();
+	LoadPath(GetFSPtr(), GetPath(), current, sHash, RESET);
+}
 
 void PanelWin::Reread(bool resetCurrent)
 {
+	FSNode *node = resetCurrent ? 0 : GetCurrent();
+	FSString s;
+	if (node) s.Copy(node->Name());
+	
+	Reread( node ? &s : 0);
+/*
 	cptr<cstrhash<bool,unicode_t> > sHash = _list.GetSelectedHash();
 	FSNode *node = resetCurrent ? 0 : GetCurrent();
 	FSString s;
 	if (node) s.Copy(node->Name());
 	
 	LoadPath(GetFSPtr(), GetPath(), node ? &s : 0, sHash, RESET);
+*/
 }
 
 
@@ -1303,24 +1431,26 @@ bool PanelWin::EventMouse(cevent_mouse* pEvent)
 		}
 		break;
 
+	case EV_MOUSE_WHEEL:
+		if (IsSelectedPanel()) 
+		{
+			if (pEvent->Delta() > 0) 
+			{
+				KeyPrior();
+				break;
+			}
+
+			if (pEvent->Delta() < 0) 
+			{
+				KeyNext();
+				break;
+			}
+		}
+		break;
 	
 	case EV_MOUSE_DOUBLE:
 	case EV_MOUSE_PRESS:
 		{
-			if (IsSelectedPanel()) 
-			{
-				if (pEvent->Button()==MB_X1) 
-				{
-					KeyPrior();
-					break;
-				}
-
-				if (pEvent->Button()==MB_X2) 
-				{
-					KeyNext();
-					break;
-				}
-			}
 
 			SelectPanel();
 

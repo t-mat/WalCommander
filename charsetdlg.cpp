@@ -264,7 +264,7 @@ void CharsetDlg1::Del()
 
 bool CharsetDlg1::Command(int id, int subId, Win *win, void *data)
 {
-	if (id == CMD_ITEM_CLICK && win == &list)
+	if ( (id == CMD_ITEM_DOUBLECLICK || id == CMD_ITEM_ENTER) && win == &list)
 		EndModal(CMD_OK);
 	else
 	switch (id) {
@@ -338,7 +338,7 @@ public:
 
 bool CharsetDialog::Command(int id, int subId, Win *win, void *data)
 {
-	if (id == CMD_ITEM_CLICK && win == &_list)
+	if ( (id == CMD_ITEM_DOUBLECLICK || id == CMD_ITEM_ENTER) && win == &_list)
 		EndModal(CMD_OK);
 	return NCDialog::Command(id, subId, win, data);
 }

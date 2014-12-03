@@ -18,7 +18,7 @@ struct SearchFileParams {
 	carray<unicode_t> mask;
 	carray<unicode_t> txt;
 	bool sens;
-	SearchFileParams():sens(false){}
+	SearchFileParams():sens(false){ static unicode_t m[] = {'*',0}; mask = new_unicode_str(m); }
 	SearchFileParams(const SearchFileParams &a) { mask = new_unicode_str(a.mask.const_ptr()); txt = new_unicode_str(a.txt.const_ptr()); }
 	SearchFileParams& operator = (const SearchFileParams &a){  mask = new_unicode_str(a.mask.const_ptr()); txt = new_unicode_str(a.txt.const_ptr()); return *this; }
 };

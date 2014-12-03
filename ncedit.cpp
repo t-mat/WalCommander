@@ -193,6 +193,16 @@ void EditWin::SetCursorPos(EditPoint p)
 	Refresh(); 
 }
 
+
+void EditWin::SetFullPosition(EditFullPosition  fp)
+{
+	if (fp.firstLine >= text.Count()) {  fp.firstLine  = text.Count() - 1; }
+	if (fp.firstLine < 0 ) {  fp.firstLine  = 0; }
+	firstLine = fp.firstLine;
+	SetCursorPos(fp.point);
+}
+
+
 void EditWin::CursorHome(bool mark)
 {
 	recomendedCursorCol = -1;
@@ -1895,6 +1905,9 @@ void EditWin::EventTimer(int)
 bool EditWin::EventMouse(cevent_mouse* pEvent)
 {
 	lastMousePoint = pEvent->Point();
+
+
+
 	switch (pEvent->Type())	{
 	case EV_MOUSE_MOVE:
 		if (IsCaptured()) 
@@ -1903,18 +1916,23 @@ bool EditWin::EventMouse(cevent_mouse* pEvent)
 		}
 		break;
 
-	case EV_MOUSE_PRESS:
+	case EV_MOUSE_WHEEL:
 		{
-			if (pEvent->Button()==MB_X1) {
+			if (pEvent->Delta() > 0) {
 				PageUp(false);
 				break;
 			}
 
-			if (pEvent->Button()==MB_X2) {
+			if (pEvent->Delta() < 0) {
 				PageDown(false);
 				break;
 			}
 
+		}
+		break;
+
+	case EV_MOUSE_PRESS:
+		{
 			if (pEvent->Button()!=MB_L) 
 				break;
 
@@ -2026,10 +2044,11 @@ bool EditWin::Replace(const unicode_t *from, const unicode_t *to, bool sens)
 	EditString &str = text.Get(line);
 	char *begin = str.Get(), *end = begin + str.Len();
 	char *s = begin +cursor.pos;
-	
+
+/*	
 	if (s < end)
 		s = charset->GetNext(s, end);
-
+*/
 	bool all = false;
 	int foundCount = 0;
 
@@ -2099,6 +2118,7 @@ bool EditWin::Replace(const unicode_t *from, const unicode_t *to, bool sens)
 							cursor.Set(line, s-begin);
 							marker = cursor;
 							
+							if (!p) break; //иначе зацикливание если заменяется последний символ в строке на пустой
 							goto restart;
 						}
 					}

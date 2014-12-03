@@ -168,14 +168,21 @@ void OperRDThread::Run()
 		
 		FSStat st;
 
-		if (fs->Stat(path, &st, &ret_err, Info()))
-			throw_msg("%s", fs->StrError(ret_err).GetUtf8());
+		// if path is inaccessible, try .. path 
+		while( fs->Stat(path, &st, &ret_err, Info()))  
+			if (!path.IsAbsolute() || !path.Pop()) 
+				throw_msg("%s", fs->StrError(ret_err).GetUtf8()); 
+
+		//if (fs->Stat(path, &st, &ret_err, Info()))
+		//	throw_msg("%s", fs->StrError(ret_err).GetUtf8());
+			
+			
 			
 		if (!st.IsLnk()) 
 			break;
 		n--;
 		if (n<0) 
-			throw_msg("too more symbolic links '%s'", path.GetUtf8());
+			throw_msg("too many symbolic links '%s'", path.GetUtf8());
 			
 		path.Pop();
 		if (!ParzeLink(path, st.link))
@@ -186,6 +193,9 @@ void OperRDThread::Run()
 	int ret = fs->ReadDir(list.ptr(), path, &ret_err, Info());
 	if (ret) 
 		throw_msg("%s", fs->StrError(ret_err).GetUtf8());
+		
+	FSStatVfs vst;
+	fs->StatVfs(path, &vst, &ret_err, Info());
 	
 	MutexLock lock(Node().GetMutex()); //!!!
 	if (Node().NBStopped()) return;
@@ -193,6 +203,7 @@ void OperRDThread::Run()
 	data->list = list;
 	data->path = path;
 	data->executed = true;
+	data->vst = vst;
 }
 
 OperRDThread::~OperRDThread(){}
@@ -703,10 +714,17 @@ public:
 		if (diapazonChanged || _lastPos != n)
 			Invalidate();
 	}
-	
+	virtual int UiGetClassId();
 	virtual void Paint(wal::GC &gc, const crect &paintRect);
 	virtual ~NCProgressWin();
 };
+
+int uiClassNCProgressWin = GetUiID("Progress");
+
+int NCProgressWin::UiGetClassId()
+{
+	return uiClassNCProgressWin;
+}
 
 
 inline unsigned MidAB(int a, int b, int i, int n)
@@ -739,12 +757,24 @@ static void FillHorisont(wal::GC &gc, crect rect, unsigned a, unsigned b)
 void NCProgressWin::Paint(wal::GC &gc, const crect &paintRect)
 {
 	crect rect = ClientRect();
+
+	unsigned colorBg = UiGetColor(uiBackground, 0, 0, 0x808080);
+	unsigned colorFrame = UiGetColor(uiFrameColor, 0, 0, 0xC0C0C0);
+	int color = UiGetColor(uiColor, 0, 0, 0xA00000);
+	bool mode3d = UiGetBool(ui3d, 0, 0, true);
+
 	int w = rect.Width();
 	
-	Draw3DButtonW2(gc, rect, 0x808080, false);
-	rect.Dec();
-	rect.Dec();
-	w -= 2;
+	if (mode3d) {
+		Draw3DButtonW2(gc, rect, colorFrame, false);
+		rect.Dec();
+		rect.Dec();
+		w -= 4;
+	} else {
+		DrawBorder(gc, rect, ColorTone(colorFrame, -150));
+		rect.Dec();
+		w -= 2;
+	}
 
 	if (!(_num < _from || _to <= _from || w <= 0)) 
 	{
@@ -753,20 +783,28 @@ void NCProgressWin::Paint(wal::GC &gc, const crect &paintRect)
 		
 		crect r = rect;
 		r.right = n;
-		
-		unsigned color = 0xA00000;
-		unsigned bColor = ColorTone(color, -80), aColor = ColorTone(color,+80);
-		FillHorisont(gc, r, aColor, bColor);
+
+		if (mode3d) {
+			unsigned bColor = ColorTone(color, -80), aColor = ColorTone(color,+80);
+			FillHorisont(gc, r, aColor, bColor);
+		} else {
+			gc.SetFillColor(color);
+			gc.FillRect(r);
+		}
 
 		_lastWidth = w;
 		_lastPos = n;
 		rect.left += n;
 	}
 	
-	unsigned color = 0xB0B0B0;
-	unsigned bColor = ColorTone(color, +50), aColor = ColorTone(color,-50);
-	FillHorisont(gc, rect, aColor, bColor);
-
+	//unsigned color = 0xB0B0B0;
+	if (mode3d) {
+		unsigned bColor = ColorTone(colorBg, +50), aColor = ColorTone(colorBg,-50);
+		FillHorisont(gc, rect, aColor, bColor);
+	} else {
+		gc.SetFillColor(colorBg);
+		gc.FillRect(rect);
+	}
 }
 
 NCProgressWin::~NCProgressWin(){}

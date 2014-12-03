@@ -137,6 +137,7 @@ private:
 	int _first;
 	int _current;
 	int *_viewMode;
+	FSStatVfs _vst;
 	
 	ccollect<crect, 0x100> _rectList;
 	ccollect<crect, 0x100> _emptyRectList;
@@ -195,7 +196,7 @@ public:
 	void DisableSort();
 	
 	cptr<cevent_key> QuickSearch(cevent_key *key);
-	bool Search(unicode_t *s);
+	bool Search(unicode_t *s, bool nextSearch);
 	
 	void SetCurrent(int n);
 	bool SetCurrent(FSString &a);
@@ -206,6 +207,7 @@ public:
 
 	void LoadPath(FSPtr fs, FSPath &path, FSString *current, cptr<cstrhash<bool,unicode_t> > selected, LOAD_TYPE lType);
 	
+	void Reread(FSString *current);
 	void Reread(bool resetCurrent = false);
 
 	

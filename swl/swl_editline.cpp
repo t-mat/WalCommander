@@ -202,8 +202,14 @@ void EditLine::OnChangeStyles()
 	SetLSize(ls);
 }
 
-EditLine::EditLine(int nId, Win *parent, const crect *rect, const unicode_t *txt, int chars, bool frame)
+bool EditLine::NeedDrawFocus()
+{
+	return (_flags & USEPARENTFOCUS) != 0  && Parent() ? Parent()->InFocus() : InFocus();
+}
+
+EditLine::EditLine(int nId, Win *parent, const crect *rect, const unicode_t *txt, int chars, bool frame, unsigned flags)
 :	Win(Win::WT_CHILD,Win::WH_TABFOCUS|WH_CLICKFOCUS,parent,rect, nId), 
+	_flags(flags),
 	text(txt),
 	_chars(chars>0 ? chars : 10),
 	cursorVisible(false), 
@@ -356,21 +362,32 @@ void EditLine::Paint(GC &gc, const crect &paintRect)
 {
 	crect cr = ClientRect();
 	crect rect = cr;
+
+	UiCondList ucl;
+	if (RO()) ucl.Set(uiReadonly, true);
 	
-	unsigned frameColor = UiGetColor(uiFrameColor, 0, 0,0xFFFFFF);
+	unsigned frameColor = UiGetColor(uiFrameColor, 0, &ucl,0xFFFFFF);
 
 	if (frame3d) 
 	{
 		DrawBorder(gc, rect, ColorTone(frameColor,+20));
 		rect.Dec();
-		Draw3DButtonW2(gc, rect, frameColor, false);
-		rect.Dec();
-		rect.Dec();
+		unsigned mode3d = UiGetBool(ui3d, 0, &ucl, true);
+		if (mode3d) {
+			Draw3DButtonW2(gc, rect, frameColor, false);
+			rect.Dec();
+			rect.Dec();
+		} else {
+			DrawBorder(gc, rect, frameColor);
+			rect.Dec();
+			DrawBorder(gc, rect, frameColor);
+			rect.Dec();
+		}
 		DrawBorder(gc, rect, ColorTone(frameColor, IsEnabled() ? -200 : -80));
 		rect.Dec();
 	}
 	
-	unsigned colorBg = UiGetColor(uiBackground, 0, 0,0xFFFFFF);
+	unsigned colorBg = UiGetColor(uiBackground, 0, &ucl, 0xFFFFFF);
 	
 	int x = rect.left;
 	
@@ -396,11 +413,11 @@ void EditLine::Paint(GC &gc, const crect &paintRect)
 			pwText = pwTextArray.ptr();
 		}
 		
-		int color = UiGetColor(uiColor,0,0,0);
-		int background = UiGetColor(uiBackground, 0, 0, 0xFFFFFF);
+		int color = UiGetColor(uiColor, 0, &ucl, 0);
+		int background = UiGetColor(uiBackground, 0, &ucl, 0xFFFFFF);
 		
-		int mark_color = UiGetColor(uiMarkColor,0,0,0xFFFFFF);
-		int mark_background = UiGetColor(uiMarkBackground, 0, 0, 0);
+		int mark_color = UiGetColor(uiMarkColor, 0, &ucl, 0xFFFFFF);
+		int mark_background = UiGetColor(uiMarkBackground, 0, &ucl, 0);
 		
 		while (cnt > 0)
 		{
@@ -413,9 +430,9 @@ void EditLine::Paint(GC &gc, const crect &paintRect)
 			int n = j-i;
 			cpoint size = gc.GetTextExtents(passwordMode ? pwText : (text.Ptr()+i), n);
 			
-			gc.SetFillColor(mark ? mark_background : background);//GetColor(InFocus() && mark ? IC_EDIT_STEXT_BG : IC_EDIT_TEXT_BG));
+			gc.SetFillColor(mark ? mark_background : background);
 			gc.FillRect(crect(x, cr.top, x+size.x, cr.bottom));
-			gc.SetTextColor(mark ? mark_color : color);//GetColor(InFocus() &&  mark ? IC_EDIT_STEXT : (IsEnabled() ? IC_EDIT_TEXT : IC_GRAY_TEXT))); 
+			gc.SetTextColor(mark ? mark_color : color);
 			
 			gc.TextOutF(x, y, passwordMode ? pwText : (text.Ptr() + i), n);
 			cnt -= n;
@@ -426,13 +443,13 @@ void EditLine::Paint(GC &gc, const crect &paintRect)
 	
 	if (x < cr.right)
 	{
-		gc.SetFillColor(colorBg);//GetColor(IC_EDIT_TEXT_BG));
+		gc.SetFillColor(colorBg);
 		cr.left = x;
 		gc.FillRect(cr);
 	}
 
 	
-	if (InFocus())
+	if (NeedDrawFocus())
 		DrawCursor(gc);
 	return;
 }
@@ -454,7 +471,14 @@ bool EditLine::EventMouse(cevent_mouse* pEvent)
 	case EV_MOUSE_DOUBLE:
 	case EV_MOUSE_PRESS:	
 		{
-			if (pEvent->Button()!=MB_L)
+			if ( (_flags & USEPARENTFOCUS)  
+				&& Parent() && (Parent()->WHint() & WH_CLICKFOCUS) && !Parent()->InFocus())
+			{
+				Parent()->SetFocus();
+				return true;
+			}
+
+			if (pEvent->Button() != MB_L)
 				break;
 				
 			int n = GetCharPos(pEvent->Point());
@@ -463,14 +487,14 @@ bool EditLine::EventMouse(cevent_mouse* pEvent)
 			CheckCursorPos();
 			Invalidate();
 			
-			SetCapture();
+			SetCapture(&captureSD);
 		}
 		break;
 		
 	case EV_MOUSE_RELEASE:	
-		if (pEvent->Button()!=MB_L)
+		if (!IsCaptured())
 			break;
-		ReleaseCapture();
+		ReleaseCapture(&captureSD);
 		break;
 	};
 	return true;
@@ -481,7 +505,6 @@ bool EditLine::EventKey(cevent_key* pEvent)
 {
 	if (pEvent->Type()==EV_KEYDOWN)
 	{
-	
 		bool shift = (pEvent->Mod() & KM_SHIFT) !=0;
 		bool ctrl = (pEvent->Mod() & KM_CTRL) !=0;
 		
@@ -496,20 +519,25 @@ bool EditLine::EventKey(cevent_key* pEvent)
 				return true;
 				
 			case VK_C: ClipboardCopy(); return true;
-			case VK_V: ClipboardPaste(); return true;
-			case VK_X: ClipboardCut(); return true;
+
+			case VK_V: if ( !RO() ) ClipboardPaste(); return true;
+			case VK_X: if ( !RO() ) ClipboardCut(); return true;
 			}
 		}
 
 		switch (pEvent->Key()) {
-		case VK_BACK: {
+		case VK_BACK: 
+			{
+				if ( RO() ) return true;
 				if (text.Cursor()==0) return true;
 				text.Backspace();
 				Changed();
-			}
+			} 
 			break;
 			
-		case VK_DELETE: {
+		case VK_DELETE: 
+			{
+				if ( RO() ) return true;
 				if (text.Cursor()>text.Count()) return true;
 				text.Del(); 
 				Changed();
@@ -547,24 +575,33 @@ bool EditLine::EventKey(cevent_key* pEvent)
 			break;
 			
 		case VK_INSERT:
-			if (shift) ClipboardPaste();
-			else 
+			if (shift) 
+			{
+				if ( RO() ) return true;
+				ClipboardPaste();
+			} else 
 			if (ctrl && text.Marked()) ClipboardCopy();
 			break;
 		
 		default:
-			wchar_t c = pEvent->Char();
-			if (c && c>=0x20) {
-				text.Insert(c);
-				Changed();
+			{
+				wchar_t c = pEvent->Char();
+				if (c && c >= 0x20) 
+				{
+					if ( RO() ) return false;
+					text.Insert(c);
+					Changed();
+				}
+				else return false;
 			}
-			else return false;
 		}
+
 		cursorVisible = true;
 		CheckCursorPos();
 		Invalidate();
 		return true;
 	}
+
 	return false;
 }
 

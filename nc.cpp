@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 
 		AppInit();
 		
-		SetColorStyle(wcmConfig.panelColorMode);
+		SetColorStyle(wcmConfig.style.ptr());
 		
 		OldSysGetFont =SysGetFont;
 		SysGetFont=MSysGetFont;

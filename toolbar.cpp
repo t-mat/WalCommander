@@ -143,13 +143,17 @@ void ToolBar::Paint(wal::GC &gc, const crect &paintRect)
 	crect cr = ClientRect();
 	crect rect = cr;
 	unsigned colorBg = UiGetColor(uiBackground, 0, 0, 0x808080); //GetColor(0);
+	bool mode3d = UiGetBool(ui3d, 0, 0, true);
 
 	unsigned splitColor1 = ColorTone(colorBg, -70);
 	unsigned splitColor2 = ColorTone(colorBg, 70);
 
-	Draw3DButtonW2(gc, rect, colorBg, true);
-	rect.Dec();
-	rect.Dec();
+	if (mode3d) 
+	{
+		Draw3DButtonW2(gc, rect, colorBg, true);
+		rect.Dec();
+		rect.Dec();
+	}
 
 	gc.SetFillColor(colorBg);
 	gc.FillRect(rect);

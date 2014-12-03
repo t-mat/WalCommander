@@ -143,7 +143,9 @@ VK_GRAVE = 0xC0,
 	VK_W = 0x57,
 	VK_X = 0x58,
 	VK_Y = 0x59,
-	VK_Z = 0x5A
+	VK_Z = 0x5A,
+	VK_BRACKETLEFT = 219,
+	VK_BRACKETRIGHT = 221
 };
 
 
@@ -211,6 +213,9 @@ enum Keyboard {
 	VK_8 = XK_8,
 	VK_9 = XK_9,
 	VK_0 = XK_0,
+
+	VK_BRACKETLEFT = XK_bracketleft,
+	VK_BRACKETRIGHT = XK_bracketright,
 		
 
 #define S(a) VK_##a = XK_##a
@@ -257,7 +262,7 @@ enum events {
 	EV_MOUSE_PRESS,	
 	EV_MOUSE_RELEASE, 
 	EV_MOUSE_DOUBLE, 
-	EV_MOUSE_WHELL, 
+	EV_MOUSE_WHEEL, 
 
 	EV_ENTER,
 	EV_LEAVE,
@@ -314,24 +319,26 @@ enum MOUSEBUTTON {
 	MB_L  = 0x01,
 	MB_M  = 0x02,
 	MB_R  = 0x04,
-	MB_X1 = 0x08,
-	MB_X2 = 0x10
+
+	//MB_X1 = 0x08,
+	//MB_X2 = 0x10,
 };
 
 class cevent_mouse: public cevent_input {
 	cpoint point;
 	unsigned buttonFlag;
 	int button;
-	//int whellDistance;
+	int wheelDelta;
 public:
-	cevent_mouse(int type, cpoint p, int b, unsigned bf, unsigned km )
-		:cevent_input(type,km), point(p), buttonFlag(bf), button(b){};
+	cevent_mouse(int type, cpoint p, int b, unsigned bf, unsigned km , int delta =0 )
+		:cevent_input(type,km), point(p), buttonFlag(bf), button(b), wheelDelta(delta){};
 
 	cpoint& Point(){ return point; }
 	unsigned ButtonFlag(){ return buttonFlag; }
 	bool ButtonL(){ return (buttonFlag & MB_L)!=0; }
 	bool ButtonR(){ return (buttonFlag & MB_R)!=0; }
 	int Button(){ return button; }
+	int Delta(){ return wheelDelta; }
 	virtual ~cevent_mouse();
 };
 
@@ -833,9 +840,11 @@ struct UiCondList {
 
 extern int uiEnabled;
 extern int uiFocus;
+extern int uiParentFocus;
 extern int uiItem;
 extern int uiClassWin;
 extern int uiColor;
+extern int uiHotkeyColor;
 extern int uiBackground;
 extern int uiFrameColor;
 extern int uiCurrentItem;
@@ -847,6 +856,8 @@ extern int uiCurrentItemFrame;
 extern int uiLineColor;
 extern int uiPointerColor;
 extern int uiOdd;
+extern int ui3d;
+extern int uiReadonly;
 
 
 class Win {
@@ -928,8 +939,26 @@ private:
 
 	friend void KeyEvent(int type, XKeyEvent *event);
 #endif
+	
 protected:
 	void UiSetNameId(int id){ uiNameId = id; }
+
+#ifdef _WIN32
+	class CaptureSD {
+		friend class Win;
+		HWND h;
+	public:
+		CaptureSD():h(0){};
+	};
+#else
+	class CaptureSD {
+		friend class Win;
+		Window h;
+	public:
+		CaptureSD():h(None){};
+	};
+#endif
+
 public:
 	Win(WTYPE t, unsigned hints=0, Win *_parent = 0, const crect *rect=0, int uiNId = 0);
 
@@ -949,14 +978,15 @@ public:
 	
 	void ClientToScreen(int *x, int *y);
 
+	int WHint() const { return  whint; }
 	void SetTabFocusFlag(bool enable){ if (enable) whint|=WH_TABFOCUS; else whint&=~WH_TABFOCUS; }
 	void SetClickFocusFlag(bool enable){ if (enable) whint|=WH_CLICKFOCUS; else whint&=~WH_CLICKFOCUS; }
 
 	void Show(SHOW_TYPE type = SHOW_ACTIVE);
 	void Hide();
 
-	void GetLSize(LSize *ls){ (state & S_VISIBLE) ? *ls = lSize : LSize(); }
-	LSize GetLSize(){ return (state & S_VISIBLE) ? lSize : LSize(); }
+	void GetLSize(LSize *ls) { *ls = lSize; } //{ (state & S_VISIBLE) ? *ls = lSize : LSize(); }
+	LSize GetLSize(){return lSize; } //{ return (state & S_VISIBLE) ? lSize : LSize(); }
 	void SetLSize(const LSize &ls){ lSize = ls; if (parent && parent->layout) parent->layout->valid = false; }//main and popup ???
 	void RecalcLayouts();
 	void SetLayout(Layout *pl){ layout = pl; if (layout) SetLSize(layout->GetLSize()); RecalcLayouts(); }
@@ -982,20 +1012,24 @@ public:
 	bool IsVisible();
 	void Enable(bool en=true);
 	void Activate();
-	void SetCapture();
-	void ReleaseCapture();
+
+	bool SetCapture(CaptureSD *sd = 0);
+	void ReleaseCapture(CaptureSD *sd = 0);
+
 	void OnTop();
 	bool IsCaptured(){ return captured; }
 	void Invalidate();
 	void SetFocus();
-	
+
 	void SetName(const unicode_t *name);
 	void SetName(const char *utf8Name);
 	
 	void UiCacheClear(){ uiCache.Clear(); }
 	virtual int UiGetClassId();
 	int UiGetNameId(){ return uiNameId; }
+	
 	unsigned UiGetColor(int id, int nodeId, UiCondList *cl, unsigned def);
+	bool UiGetBool(int id, int nodeId, UiCondList *cl, bool def);
 	
 	virtual void Paint(GC &gc, const crect &paintRect);
 
@@ -1003,6 +1037,7 @@ public:
 	virtual bool EventMouse(cevent_mouse* pEvent);
 	virtual bool EventChildKey(Win* child, cevent_key* pEvent);
 	virtual bool EventKey(cevent_key* pEvent);
+	virtual bool EventKeyPost(Win *focusWin, cevent_key* pEvent);
 	virtual bool EventFocus(bool recv);
 	virtual bool EventActivate(bool activated, Win *w);
 	virtual bool EventShow(bool show);
@@ -1038,6 +1073,9 @@ public:
 	
 	//вызывает у всех дочерних окон OnChangeStyles и RecalcLayouts
 	static void StylesChanged(Win *w);
+	
+	//
+	bool DoKeyPost(cevent_key* pEvent);
 	
 #ifndef _WIN32	
 	static void SetIcon(const char **xpm);

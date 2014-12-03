@@ -687,9 +687,13 @@ int uiCurrentItemFrame = GetUiID("current-item-frame-color");
 int uiLineColor = GetUiID("line-color");
 int uiPointerColor = GetUiID("pointer-color");
 int uiOdd = GetUiID("odd");
+int ui3d = GetUiID("mode3d");
+int uiReadonly = GetUiID("readonly");
+int uiHotkeyColor = GetUiID("hotkey-color");
 
 int uiEnabled = GetUiID("enabled");
 int uiFocus = GetUiID("focus");
+int uiParentFocus = GetUiID("parent-focus");
 int uiItem = GetUiID("item");
 int uiClassWin = GetUiID("Win");
 
@@ -709,12 +713,13 @@ unsigned Win::UiGetColor(int id, int itemId, UiCondList *cl, unsigned def)
 		
 	if (InFocus())
 		buf[pos++] = uiFocus;
+
+	if (Parent() && Parent()->InFocus())
+		buf[pos++] = uiParentFocus;
 		
 	buf[pos++] = 0;
-//printf("1\n");	
+
 	if (!uiCache.Updated()) {
-//printf("2\n");	
-		//Update(UiRules &rules, ObjNode *orderList, int orderlistCount)
 		ccollect<UiCache::ObjNode> wlist;
 		
 		for (Win *w = this; w; w = w->Parent())
@@ -722,12 +727,15 @@ unsigned Win::UiGetColor(int id, int itemId, UiCondList *cl, unsigned def)
 		
 		uiCache.Update(*globalUiRules.ptr(), wlist.ptr(), wlist.count());
 	}
-//printf("3\n");		
+
 	UiValue *v = uiCache.Get(id, itemId, buf);
-//printf("4 %p\n", v);
-//if (v) printf("5 %i\n", v->Int());
 	return v ? v->Int() : def;
 };
+
+bool Win::UiGetBool(int id, int itemId, UiCondList *cl, bool def)
+{
+	return UiGetColor(id, itemId, cl, def ? 1 : 0) != 0;
+}
 
 int Win::UiGetClassId()
 {

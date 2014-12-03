@@ -501,6 +501,9 @@ const char *sys_locale_lang();
 const char *sys_locale_ter();
 const char *sys_locale_lang_ter();
 
+unsigned  UnicodeLC(unsigned ch);
+unsigned  UnicodeUC(unsigned ch);
+
 
 }; //namespace wal
 

@@ -535,6 +535,7 @@ const char *sectionEditor = "editor";
 const char *sectionViewer = "viewer";
 const char *sectionTerminal = "terminal";
 const char *sectionFonts = "fonts";
+const char *sectionStyle = "style";
 
 WcmConfig::WcmConfig()
 :	systemAskOpenExec(true),
@@ -553,7 +554,7 @@ WcmConfig::WcmConfig()
 	true
 #endif		
 	),
-	panelColorMode(0),
+	//panelColorMode(0),
 	
 	panelModeLeft(0),
 	panelModeRight(0),
@@ -561,16 +562,18 @@ WcmConfig::WcmConfig()
 	editSavePos(true),
 	editAutoIdent(true),
 	editTabSize(8),
-	editColorMode(0),
+	//editColorMode(0),
 	editShl(true),
 	
-	terminalBackspaceKey(0),
+	terminalBackspaceKey(0)
 
-	viewColorMode(0)
+	//viewColorMode(0)
 {
 #ifndef _WIN32
 	MapBool(sectionSystem, "ask_open_exec", &systemAskOpenExec, systemAskOpenExec);
 #endif
+	MapStr(sectionStyle,  "style", &style);
+
 	MapBool(sectionSystem, "esc_panel", &systemEscPanel, systemEscPanel);
 	MapStr(sectionSystem,  "lang", &systemLang);
 	
@@ -581,13 +584,13 @@ WcmConfig::WcmConfig()
 	MapBool(sectionPanel, "show_hidden_files",	&panelShowHiddenFiles, panelShowHiddenFiles);
 	MapBool(sectionPanel, "show_icons",		&panelShowIcons, panelShowIcons);
 	MapBool(sectionPanel, "case_sensitive_sort",	&panelCaseSensitive, panelCaseSensitive);
-	MapInt(sectionPanel,  "color_mode",		&panelColorMode, panelColorMode);
+	//MapInt(sectionPanel,  "color_mode",		&panelColorMode, panelColorMode);
 	MapInt(sectionPanel,  "mode_left",		&panelModeLeft, panelModeLeft);
 	MapInt(sectionPanel,  "mode_right",		&panelModeRight, panelModeRight);
 
 	MapBool(sectionEditor, "save_file_position",		&editSavePos, editSavePos);
 	MapBool(sectionEditor, "auto_ident",	&editAutoIdent, editAutoIdent);
-	MapInt(sectionEditor,  "color_mode",	&editColorMode, editColorMode);
+//	MapInt(sectionEditor,  "color_mode",	&editColorMode, editColorMode);
 	MapInt(sectionEditor, "tab_size",	&editTabSize, editTabSize);
 	MapBool(sectionEditor, "highlighting",	&editShl, editShl);
 	
@@ -602,7 +605,7 @@ WcmConfig::WcmConfig()
 	MapStr(sectionFonts, "helpbold_font",	&helpBoldFontUri);
 	MapStr(sectionFonts, "helphead_font",	&helpHeadFontUri);
 
-	MapInt(sectionViewer,  "color_mode",	&viewColorMode, viewColorMode);
+//	MapInt(sectionViewer,  "color_mode",	&viewColorMode, viewColorMode);
 }
 
 void WcmConfig::ImpCurrentFonts()
@@ -798,9 +801,9 @@ PanelOptDialog::~PanelOptDialog(){}
 PanelOptDialog::PanelOptDialog(NCDialogParent *parent)
 :	NCVertDialog(::createDialogAsChild, 0, parent, utf8_to_unicode( _LT( "Panel settings") ).ptr(), bListOkCancel),
 	iL(16, 3),
-	showHiddenButton(0, this, utf8_to_unicode( _LT("Show hidden files") ).ptr(), 0, wcmConfig.panelShowHiddenFiles),
-	showIconsButton(0, this, utf8_to_unicode( _LT("Show icons") ).ptr(), 0, wcmConfig.panelShowIcons),
-	caseSensitive(0, this, utf8_to_unicode( _LT("Case sensitive sort") ).ptr(), 0, wcmConfig.panelCaseSensitive)
+	showHiddenButton(0, this, utf8_to_unicode( _LT("Show &hidden files") ).ptr(), 0, wcmConfig.panelShowHiddenFiles),
+	showIconsButton(0, this, utf8_to_unicode( _LT("Show &icons") ).ptr(), 0, wcmConfig.panelShowIcons),
+	caseSensitive(0, this, utf8_to_unicode( _LT("&Case sensitive sort") ).ptr(), 0, wcmConfig.panelCaseSensitive)
 {
 	iL.AddWin(&showHiddenButton,	0, 0); showHiddenButton.Enable(); showHiddenButton.SetFocus(); showHiddenButton.Show(); 
 	iL.AddWin(&showIconsButton,	1, 0); showIconsButton.Enable(); showIconsButton.Show(); 
@@ -842,7 +845,7 @@ public:
 	SButton  autoIdentButton;
 	SButton  shlButton;
 
-	StaticLine tabText; 
+	HKStaticLine tabText; 
 	EditLine tabEdit;
 	
 	EditOptDialog(NCDialogParent *parent);
@@ -857,10 +860,10 @@ EditOptDialog::EditOptDialog(NCDialogParent *parent)
 :	NCVertDialog(::createDialogAsChild, 0, parent, utf8_to_unicode( _LT("Editor") ).ptr(), bListOkCancel),
 	iL(16, 2),
 
-	saveFilePosButton(0, this, utf8_to_unicode( _LT("Save file position") ).ptr(), 0, wcmConfig.editSavePos),
-	autoIdentButton(0, this, utf8_to_unicode( _LT("Auto indent") ).ptr(), 0, wcmConfig.editAutoIdent),
-	shlButton(0, this, utf8_to_unicode( _LT("Syntax highlighting") ).ptr(), 0, wcmConfig.editShl),
-	tabText(0, this, utf8_to_unicode( _LT("Tab size:") ).ptr()), 
+	saveFilePosButton(0, this, utf8_to_unicode( _LT("Save &file position") ).ptr(), 0, wcmConfig.editSavePos),
+	autoIdentButton(0, this, utf8_to_unicode( _LT("&Auto indent") ).ptr(), 0, wcmConfig.editAutoIdent),
+	shlButton(0, this, utf8_to_unicode( _LT("&Syntax highlighting") ).ptr(), 0, wcmConfig.editShl),
+	tabText(0, this, utf8_to_unicode( _LT("&Tab size:") ).ptr()), 
 	tabEdit(0, this, 0, 0, 16)
 {
 	char buf[0x100];
@@ -872,6 +875,7 @@ EditOptDialog::EditOptDialog(NCDialogParent *parent)
 	iL.AddWin(&shlButton,		2, 0, 2, 1); shlButton.Enable(); shlButton.Show(); 
 	
 	iL.AddWin(&tabText, 		3, 0, 3, 0); tabText.Enable(); tabText.Show();
+	tabText.SetControlWin(&tabEdit);
 	iL.AddWin(&tabEdit, 		4, 1, 4, 1); tabEdit.Enable(); tabEdit.Show(); 
 	AddLayout(&iL);
 	SetEnterCmd(CMD_OK);
@@ -903,7 +907,6 @@ bool DoEditConfigDialog(NCDialogParent *parent)
 }
 
 
-
 ////////////////////////// StyleOptDialog
 
 class StyleOptDialog: public NCVertDialog {
@@ -922,21 +925,21 @@ public:
 	
 	ccollect<Node> *pList;
 
-	StaticLine colorStatic;
-	SButton  styleDefButton;
-	SButton  styleBlackButton;
-	SButton  styleWhiteButton;
+	HKStaticLine styleStatic;
+
+	wal::ccollect< wal::carray<char> > styleList;
+	ComboBox styleBox;
+	const char *StyleName();
 
 	StaticLine showStatic;
 	SButton  showToolbarButton;
 	SButton  showButtonbarButton;
 	
-	StaticLine fontsStatic;
+	HKStaticLine fontsStatic;
 	TextList fontList;
 	StaticLine fontNameStatic;
 	Button changeButton;
 	Button changeX11Button;
-
 
 	StyleOptDialog(NCDialogParent *parent, ccollect<Node> *p);
 	virtual bool EventChildKey(Win* child, cevent_key* pEvent);
@@ -945,6 +948,12 @@ public:
 };
 
 StyleOptDialog::~StyleOptDialog(){}
+
+const char *StyleOptDialog::StyleName()
+{
+	int n = styleBox.Current();
+	return (char *) styleBox.ItemData(n);
+}
 
 void StyleOptDialog::RefreshFontInfo()
 {
@@ -972,33 +981,49 @@ StyleOptDialog::StyleOptDialog(NCDialogParent *parent, ccollect<Node> *p)
 :	NCVertDialog(::createDialogAsChild, 0, parent, utf8_to_unicode( _LT("Style") ).ptr(), bListOkCancel),
 	iL(16, 3),
 	pList(p),
-	colorStatic(0, this, utf8_to_unicode( _LT("Colors:") ).ptr()),
-	styleDefButton(0, this, utf8_to_unicode( _LT("Default colors") ).ptr(), 1, wcmConfig.panelColorMode!=1 && wcmConfig.panelColorMode!=2 ),
-	styleBlackButton(0, this,  utf8_to_unicode( _LT("Black") ).ptr(), 1, wcmConfig.panelColorMode == 1),
-	styleWhiteButton(0, this, utf8_to_unicode( _LT("White") ).ptr(), 1, wcmConfig.panelColorMode == 2),
+	styleStatic(0, this, utf8_to_unicode( _LT("&Colors:") ).ptr()),
+	styleBox(0, this, 10, 3, ComboBox::READONLY | ComboBox::FRAME3D ),
 
 showStatic(0, this, utf8_to_unicode( _LT("Items:") ).ptr()),
-showToolbarButton(0, this, utf8_to_unicode( _LT("Show toolbar") ).ptr(), 0, wcmConfig.showToolBar),
-showButtonbarButton(0, this, utf8_to_unicode( _LT("Show buttonbar") ).ptr(), 0, wcmConfig.showButtonBar),
+showToolbarButton(0, this, utf8_to_unicode( _LT("Show &toolbar") ).ptr(), 0, wcmConfig.showToolBar),
+showButtonbarButton(0, this, utf8_to_unicode( _LT("Show &buttonbar") ).ptr(), 0, wcmConfig.showButtonBar),
 
-	fontsStatic(0, this, utf8_to_unicode( _LT("Fonts:") ).ptr()),
+	fontsStatic(0, this, utf8_to_unicode( _LT("&Fonts:") ).ptr()),
 	fontList(Win::WT_CHILD, WH_TABFOCUS | WH_CLICKFOCUS, 0, this, VListWin::SINGLE_SELECT, VListWin::BORDER_3D, 0),
 	fontNameStatic(0, this, utf8_to_unicode("--------------------------------------------------").ptr()),
-	changeButton(0, this, utf8_to_unicode( _LT("Set font...") ).ptr(), CMD_CHFONT),
-	changeX11Button(0, this, utf8_to_unicode( _LT("Set X11 font...") ).ptr(), CMD_CHFONTX11)
+	changeButton(0, this, utf8_to_unicode( _LT("&Set font...") ).ptr(), CMD_CHFONT),
+	changeX11Button(0, this, utf8_to_unicode( _LT("Set &X11 font...") ).ptr(), CMD_CHFONTX11)
 {
-	iL.AddWin(&colorStatic,	0, 0 ); colorStatic.Enable(); colorStatic.Show(); 
-	iL.AddWin(&styleDefButton,	1, 1); styleDefButton.Enable(); styleDefButton.Show(); 
-	iL.AddWin(&styleBlackButton,	2, 1); styleBlackButton.Enable(); styleBlackButton.Show(); 
-	iL.AddWin(&styleWhiteButton,	3, 1); styleWhiteButton.Enable(); styleWhiteButton.Show(); 
+	styleStatic.SetControlWin(&styleBox);
+	iL.AddWin(&styleStatic,	1, 0 ); styleStatic.Enable(); styleStatic.Show(); 
+
+	GetColorStyleList(&styleList);
+	for (int i = 0; i < styleList.count(); i++)
+		styleBox.Append( _LT(styleList[i].ptr()), styleList[i].ptr() );
+
+	if (currentColorStyleName)
+	{
+		for (int i = 0; i < styleList.count(); i++)
+			if (!strcmp( styleList[i].ptr(), currentColorStyleName) ) 
+			{
+				styleBox.MoveCurrent(i);
+				break;
+			}
+	}
+
+	iL.AddWin(&styleBox, 1, 1); 
+	styleBox.Enable(); 
+	styleBox.Show();
 
 	iL.AddWin(&showStatic,	4, 0 ); showStatic.Enable(); showStatic.Show(); 
 	iL.AddWin(&showToolbarButton,	5, 1); showToolbarButton.Enable(); showToolbarButton.Show(); 
 	iL.AddWin(&showButtonbarButton,	6, 1); showButtonbarButton.Enable(); showButtonbarButton.Show(); 
 
+
 	iL.LineSet(7,10);
 	iL.AddWin(&fontsStatic,	8, 0); fontsStatic.Enable(); fontsStatic.Show(); 
-	
+	fontsStatic.SetControlWin(&fontList);
+
 	iL.ColSet(0,10,10,10);
 	iL.SetColGrowth(1);
 	
@@ -1011,7 +1036,7 @@ showButtonbarButton(0, this, utf8_to_unicode( _LT("Show buttonbar") ).ptr(), 0, 
 	LSize lsize = fontList.GetLSize();
 	lsize.y.minimal = lsize.y.ideal = 100;
 	lsize.y.maximal = 1000;
-	lsize.x.minimal = lsize.x.ideal = 300;
+	lsize.x.minimal = lsize.x.ideal = 200;
 	lsize.x.maximal = 1000;
 	fontList.SetLSize(lsize);
 	
@@ -1020,7 +1045,7 @@ showButtonbarButton(0, this, utf8_to_unicode( _LT("Show buttonbar") ).ptr(), 0, 
 	fontNameStatic.Enable(); fontNameStatic.Show(); 
 	
 	lsize = fontNameStatic.GetLSize();
-	lsize.x.minimal = 500;
+	lsize.x.minimal = 400;
 	lsize.x.maximal = 1000;
 	fontNameStatic.SetLSize(lsize);
 	
@@ -1047,12 +1072,8 @@ showButtonbarButton(0, this, utf8_to_unicode( _LT("Show buttonbar") ).ptr(), 0, 
 
 	AddLayout(&iL);
 	SetEnterCmd(CMD_OK);
-
-	styleDefButton.SetFocus();
-	
-	order.append(&styleDefButton);
-	order.append(&styleBlackButton);
-	order.append(&styleWhiteButton);
+	styleBox.SetFocus();
+	order.append(&styleBox);
 	order.append(&showToolbarButton);
 	order.append(&showButtonbarButton);
 	order.append(&fontList);
@@ -1171,25 +1192,16 @@ bool DoStyleConfigDialog(NCDialogParent *parent)
 	list.append(StyleOptDialog::Node(  _LT("Help bold text"),	false,	helpBoldFont.ptr(), &wcmConfig.helpBoldFontUri));
 	list.append(StyleOptDialog::Node(  _LT("Help header text"),	false,	helpHeadFont.ptr(), &wcmConfig.helpHeadFontUri));
 	
-	StyleOptDialog dlg(parent, &list);
+	carray<char> styleErr; 
 
-	if (dlg.DoModal() == CMD_OK)
-	{
-		if (dlg.styleBlackButton.IsSet()) {
-			wcmConfig.viewColorMode = wcmConfig.editColorMode = wcmConfig.panelColorMode = 1;
-//			wcmConfig.whiteStyle = false;
-		} else 
-		if (dlg.styleWhiteButton.IsSet()) {
-			wcmConfig.viewColorMode = wcmConfig.editColorMode = wcmConfig.panelColorMode = 2;
-//			wcmConfig.whiteStyle = true;
-		} else {
-			wcmConfig.viewColorMode = wcmConfig.editColorMode = wcmConfig.panelColorMode = 0;
-//			wcmConfig.whiteStyle = false;
-		}
+	{	//чтоб диалого уже не было если ошибка
+		StyleOptDialog dlg(parent, &list);
 
-		SetColorStyle(wcmConfig.panelColorMode);
-//		SetEditorColorStyle(wcmConfig.editColorMode);
-//		SetViewerColorStyle(wcmConfig.viewColorMode);
+		if (dlg.DoModal() != CMD_OK) return false;
+
+		styleErr = SetColorStyle(dlg.StyleName());
+		if (styleErr.ptr() == 0 && dlg.StyleName())
+			wcmConfig.style = new_char_str( dlg.StyleName() );
 
 		wcmConfig.showToolBar = dlg.showToolbarButton.IsSet();
 		wcmConfig.showButtonBar = dlg.showButtonbarButton.IsSet();
@@ -1199,11 +1211,12 @@ bool DoStyleConfigDialog(NCDialogParent *parent)
 			{
 				*(list[i].pUri) = new_char_str(list[i].newFont->uri());
 			}
-		
-		return true;
 	}
 
-	return false;
+	if (styleErr.ptr())
+		NCMessageBox(parent, _LT("Bad style info"), styleErr.ptr(), true);
+
+	return true;
 }
 
 struct LangListNode {
@@ -1212,77 +1225,6 @@ struct LangListNode {
 	LangListNode(){}
 	LangListNode(const char *i, const char *n):id(new_char_str(i)), name(new_char_str(n)){}
 };
-
-class CfgLangDialog: public NCDialog {
-	int _selected;
-	TextList _list;
-	ccollect<LangListNode> *nodeList;
-public:
-	CfgLangDialog(NCDialogParent *parent, char *id, ccollect<LangListNode> *nl)
-	:	NCDialog(createDialogAsChild, 0, parent, utf8_to_unicode( _LT("Language") ).ptr(), bListOkCancel), 
-		_selected(0),
-		_list(Win::WT_CHILD,Win::WH_TABFOCUS|WH_CLICKFOCUS, 0, this, VListWin::SINGLE_SELECT, VListWin::BORDER_3D, 0),
-		nodeList(nl)
-		
-	{ 
-		_list.Append( utf8_to_unicode( _LT("Autodetect") ).ptr()); //0
-		_list.Append( utf8_to_unicode( _LT("English") ).ptr()); //1
-		
-		for (int i = 0; i<nl->count(); i++)
-			_list.Append( utf8_to_unicode(nl->get(i).name.ptr()).ptr() );
-			
-		int cur = 0;
-		if (id[0] == '+') cur = 0;
-		else if (id[0] == '-') cur = 1;
-		else {
-			for (int i = 0; i<nl->count(); i++)
-				if (!strcmp(id, nl->get(i).id.ptr()))
-				{
-					cur = i+2;
-					break;
-				}
-		}
-		_list.MoveCurrent(cur);
-		
-		_list.Enable();
-		_list.Show();
-		_list.SetFocus();
-		LSRange h(10, 1000, 10);
-		LSRange w(50, 1000, 30);
-		_list.SetHeightRange(h); //in characters
-		_list.SetWidthRange(w); //in characters
-		
-		AddWin(&_list);
-		SetEnterCmd(CMD_OK);
-		SetPosition();
-	};
-	
-	const char *GetId();
-
-	virtual bool Command(int id, int subId, Win *win, void *data);
-	
-	virtual ~CfgLangDialog();
-};
-
-const char *CfgLangDialog::GetId()
-{ 
-	int n = _list.GetCurrent();
-	if (n <= 0 ) return "+";
-	if (n == 1) return "-";
-	n-=2;
-	if (n >= nodeList->count()) return "+";
-	return nodeList->get(n).id.ptr();
-}
-
-bool CfgLangDialog::Command(int id, int subId, Win *win, void *data)
-{
-	if (id == CMD_ITEM_CLICK && win == &_list)
-		EndModal(CMD_OK);
-	return NCDialog::Command(id, subId, win, data);
-}
-
-CfgLangDialog::~CfgLangDialog(){}
-
 
 inline bool IsSpace(char c){ return c>0 && c<=0x20; }
 
@@ -1345,11 +1287,8 @@ public:
 
 	SButton  askOpenExecButton;
 	SButton  escPanelButton;
-//	SButton  intLocale;
-	
-	StaticLine langStatic;
-	StaticLine langVal;
-	Button langButton;
+	HKStaticLine langStatic;
+	ComboBox langBox;
 
 	SysOptDialog(NCDialogParent *parent);
 	virtual bool Command(int id, int subId, Win *win, void *data);
@@ -1357,24 +1296,12 @@ public:
 	virtual ~SysOptDialog();
 };
 
+
 void SysOptDialog::SetCurLang(const char *id)
 {
-	curLangId = new_char_str(id);
-	if (id[0] == '-')
-		langVal.SetText( utf8_to_unicode( _LT("English") ).ptr() );
-	else if (id[0]=='+') 
-		langVal.SetText( utf8_to_unicode( _LT("Autodetect") ).ptr() );
-	else {
-		for (int i = 0; i<list.count(); i++)
-		{
-			if (!strcmp(list[i].id.ptr(), id)) {
-				langVal.SetText( utf8_to_unicode( list[i].name.ptr() ).ptr() );
-				return;
-			}
-		}
-		langVal.SetText( utf8_to_unicode( id ).ptr() );
-	}
+	curLangId = new_char_str(id ? id : "+");
 }
+
 
 SysOptDialog::~SysOptDialog(){}
 
@@ -1382,23 +1309,19 @@ SysOptDialog::SysOptDialog(NCDialogParent *parent)
 :	NCVertDialog(::createDialogAsChild, 0, parent, utf8_to_unicode( _LT("System settings") ).ptr(), bListOkCancel),
 	iL(16, 3)
 
-	,askOpenExecButton(0, this, utf8_to_unicode( _LT("Ask user if Exec/Open conflict") ).ptr(), 0, wcmConfig.systemAskOpenExec)
-	,escPanelButton(0, this, utf8_to_unicode( _LT("Enable ESC key to show/hide panels") ).ptr(), 0, wcmConfig.systemEscPanel)
-//	,intLocale(this, utf8_to_unicode( _LT("Interface localisation (save config and restart)") ).ptr(), 0, wcmConfig.systemIntLocale)
-	,langStatic(0, this, utf8_to_unicode( _LT("Language:") ).ptr())
-	,langVal(0, this, utf8_to_unicode( "______________________" ).ptr())
-	,langButton(0, this, utf8_to_unicode( ">" ).ptr(), 1000)
+	,askOpenExecButton(0, this, utf8_to_unicode( _LT("&Ask user if Exec/Open conflict") ).ptr(), 0, wcmConfig.systemAskOpenExec)
+	,escPanelButton(0, this, utf8_to_unicode( _LT("Enable &ESC key to show/hide panels") ).ptr(), 0, wcmConfig.systemEscPanel)
+	,langStatic(0, this, utf8_to_unicode( _LT("&Language:") ).ptr())
+	,langBox(0, this, 10, 5, ComboBox::READONLY)
 {
 
 #ifndef _WIN32
-	iL.AddWin(&askOpenExecButton,	0, 0, 0, 2); askOpenExecButton.Enable();  askOpenExecButton.Show(); 
+	iL.AddWin(&askOpenExecButton,	0, 0, 0, 1); askOpenExecButton.Enable();  askOpenExecButton.Show(); 
 #endif
-	iL.AddWin(&escPanelButton,	1, 0, 1, 2); escPanelButton.Enable();  escPanelButton.Show(); 
-//	iL.AddWin(&intLocale,		2, 0, 2, 2); intLocale.Enable();  intLocale.Show(); 
-	
+	iL.AddWin(&escPanelButton,	1, 0, 1, 1); escPanelButton.Enable();  escPanelButton.Show(); 
 	iL.AddWin(&langStatic, 		3, 0);	langStatic.Enable();	langStatic.Show();
-	iL.AddWin(&langVal,		3, 2);	langVal.Enable();	langVal.Show();
-	iL.AddWin(&langButton,		3, 1);	langButton.Enable();	langButton.Show();
+	langStatic.SetControlWin(&langBox);
+	iL.AddWin(&langBox,		3, 1);	langBox.Enable();	langBox.Show();
 	iL.SetColGrowth(2);
 	
 	AddLayout(&iL);
@@ -1409,8 +1332,7 @@ SysOptDialog::SysOptDialog(NCDialogParent *parent)
 	order.append(&askOpenExecButton);
 #endif
 	order.append(&escPanelButton);
-//	order.append(&intLocale);
-	order.append(&langButton);
+	order.append(&langBox);
 
 	SetPosition();
 
@@ -1420,58 +1342,73 @@ SysOptDialog::SysOptDialog(NCDialogParent *parent)
 	if (!LangListLoad(utf8_to_sys("install-files/share/wcm/lang/list").ptr(), list))
 		LangListLoad(utf8_to_sys(UNIX_CONFIG_DIR_PATH "/lang/list").ptr(), list);
 #endif
-		
+
+	static char str_plus[]="+";
+	static char str_minus[]="-";
+
+	langBox.Append( _LT("Autodetect"), &str_plus ); //0
+	langBox.Append( _LT("English") , &str_minus); //1	
+
+	int i;
+	for (i = 0; i <	 list.count(); i++)
+		langBox.Append( _LT(list[i].name.ptr()), list[i].id.ptr() );
+
 	SetCurLang(wcmConfig.systemLang.ptr() ? wcmConfig.systemLang.ptr() : "+");
+
+	for (i = 0; i < langBox.Count(); i++)
+	{
+		char *s = (char*)langBox.ItemData(i);
+		if (s && !strcmp(curLangId.ptr(), s)) 
+		{
+			langBox.MoveCurrent(i);
+			break;
+		}
+	}
 }
 
 bool SysOptDialog::Command(int id, int subId, Win *win, void *data)
 {
-	if (id == 1000) {
-		CfgLangDialog dlg((NCDialogParent*)Parent(), curLangId.ptr(), &list);
-		if (dlg.DoModal() == CMD_OK)
-		{
-			SetCurLang(dlg.GetId());
-		}
+	if (win == &langBox && id == CMD_ITEM_CHANGED) 
+	{
+		SetCurLang((const char*)langBox.ItemData(subId));
 		return true;
 	}
+
 	return NCVertDialog::Command(id, subId, win, data);
 }
 
 bool SysOptDialog::EventChildKey(Win* child, cevent_key* pEvent)
 {
-	if (pEvent->Type() == EV_KEYDOWN) 
-	{
-		if (pEvent->Key() == VK_RETURN && langButton.InFocus()) //prevent autoenter
-			return false;
-		
-	}; 
  	return NCVertDialog::EventChildKey(child, pEvent);
 }
 
 
 bool DoSystemConfigDialog(NCDialogParent *parent)
 {
-	SysOptDialog dlg(parent);
+	bool langChanged = false;
 
-	if (dlg.DoModal() == CMD_OK)
-	{
+	{	//////////
+		SysOptDialog dlg(parent);
+
+		if (dlg.DoModal() != CMD_OK) return false;
+
 		wcmConfig.systemAskOpenExec = dlg.askOpenExecButton.IsSet(); 
 		wcmConfig.systemEscPanel = dlg.escPanelButton.IsSet();
 		const char *s = wcmConfig.systemLang.ptr();
-		if (!s) s = "+";
-		bool langChanged = strcmp(dlg.curLangId.ptr(), s) != 0;
-		wcmConfig.systemLang = new_char_str(dlg.curLangId.ptr());
-		
-		if (langChanged) 
-		{
-			NCMessageBox(parent, _LT("Note"), 
-				_LT("Language changed. \nFor effect you must save config and restart"), false);
-		}
-		
-		return true;
-	}
 
-	return false;
+		if (!s) s = "+";
+
+		langChanged = strcmp(dlg.curLangId.ptr(), s) != 0;
+		wcmConfig.systemLang = new_char_str(dlg.curLangId.ptr());
+	}	/////////
+		
+	if (langChanged) 
+	{
+		NCMessageBox(parent, _LT("Note"), 
+			_LT("Language changed. \nFor effect you must save config and restart"), false);
+	}
+		
+	return true;
 }
 
 

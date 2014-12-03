@@ -239,9 +239,9 @@ bool ExeFileExist(const char *name)
 }
 
 
-extern unsigned  UnicodeLC(unsigned ch);
+//extern unsigned  UnicodeLC(unsigned ch);
 
-#define MIMEDEBUG
+//#define MIMEDEBUG
 
 #ifdef MIMEDEBUG
 static cinthash<int, carray<char> > mimeIdToNameHash;

@@ -71,6 +71,7 @@ public:
 	virtual bool EventShow(bool show);
 	virtual bool EventKey(cevent_key* pEvent);
 	virtual bool EventChildKey(Win* child, cevent_key* pEvent);
+	virtual bool EventKeyPost(Win* child, cevent_key* pEvent);
 	virtual bool Command(int id, int subId, Win *win, void *data);
 	virtual bool EventClose();
 	virtual void EventSize(cevent_size *pEvent);
@@ -90,7 +91,7 @@ protected:
 public:
 	NCVertDialog(bool child, int nId, NCDialogParent *parent, const unicode_t *headerText, ButtonDataNode *blist)
 	:	NCDialog(child, nId, parent, headerText, blist){}
-	virtual bool EventChildKey(Win* child, cevent_key* pEvent);
+	virtual bool EventKeyPost(Win *focusWin, cevent_key* pEvent);
 	virtual ~NCVertDialog();
 };
 

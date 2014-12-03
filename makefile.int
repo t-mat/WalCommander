@@ -1,5 +1,5 @@
 
-CFLAGS= -D_FILE_OFFSET_BITS=64 -I /usr/local/include -O3 -I wal -I swl -pthread $(CFLAGS_FREETYPE)
+CFLAGS= -D_FILE_OFFSET_BITS=64 -I /usr/local/include -O3 -I wal -I swl -pthread $(CFLAGS_FREETYPE) #-Wall
 #CFLAGS= -D_FILE_OFFSET_BITS=64 -I /usr/local/include -g -I wal -I swl -pthread $(CFLAGS_FREETYPE) #--pedantic -Wall
 
 include makelib.mk
@@ -33,6 +33,7 @@ OBJS =  wal_tmpls.o \
 	swl_winbase.o     \
 	swl_wincore.o     \
 	swl_wincoreUX.o \
+	swl_combobox.o \
 	operthread.o \
 	operwin.o \
 	vfs.o \
@@ -44,7 +45,6 @@ OBJS =  wal_tmpls.o \
 	termwin.o \
 	ncdialogs.o \
 	terminal.o \
-	unicode_lc.o \
 	nchistory.o \
 	shell.o \
 	panel_list.o \
@@ -199,9 +199,6 @@ vfs-sftp2.o: $(HW) $(HS) $(HN) vfs-sftp2.cpp
 nchistory.o: $(HW) $(HS) $(HN) nchistory.cpp 
 	$(CC) -c $(CFLAGS) nchistory.cpp 
 		
-unicode_lc.o: $(HW) $(HS) $(HN) unicode_lc.cpp 
-	$(CC) -c $(CFLAGS) unicode_lc.cpp 
-
 fileopers.o: $(HW) $(HS) $(HN) fileopers.cpp 
 	$(CC) -c $(CFLAGS) fileopers.cpp 
 	
@@ -257,6 +254,10 @@ wal_files.o: $(HW) wal/wal_files.cpp
 
 swl_button.o: $(HW) $(HS) swl/swl_button.cpp
 	$(CC) -c $(CFLAGS) swl/swl_button.cpp 
+	
+	
+swl_combobox.o: $(HW) $(HS) swl/swl_combobox.cpp
+	$(CC) -c $(CFLAGS) swl/swl_combobox.cpp 
 
 swl_editline.o: $(HW) $(HS) swl/swl_editline.cpp
 	$(CC) -c $(CFLAGS) swl/swl_editline.cpp  

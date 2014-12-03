@@ -22,7 +22,7 @@ void Button::OnChangeStyles()
 {
 	GC gc(this);
 	gc.Set(GetFont());
-	cpoint p = gc.GetTextExtents(text.ptr());
+	cpoint p = HkStringGetTextExtents(gc, text.ptr());
 
 	if (icon.ptr()) 
 	{
@@ -53,6 +53,8 @@ Button::Button(int nId, Win *parent, const unicode_t *txt, int id, crect *rect, 
                
 	text = new_unicode_str(txt && txt[0] ? txt : spaceUnicodeStr);
 	
+	key = HkStringKey(text.ptr());
+
 	if (!rect)
 	{
 		OnChangeStyles();
@@ -63,6 +65,8 @@ void Button::Set(const unicode_t *txt, int id, int iconX, int iconY)
 {
 	text = new_unicode_str(txt && txt[0] ? txt : spaceUnicodeStr);
 	
+	key = HkStringKey(text.ptr());
+
 	commandId = id;
 	icon = new cicon(id, iconX, iconY);
 	if (!icon->Valid())
@@ -140,10 +144,20 @@ bool Button::EventKey(cevent_key* pEvent)
 	return false;
 }
 
+bool Button::EventKeyPost(Win *focusWin, cevent_key* pEvent)
+{
+	if (!key || pEvent->Type() != EV_KEYDOWN) return false;
+	if (UnicodeUC(key) != UnicodeUC(pEvent->Char())) return false;
+	SetFocus();
+	SendCommand();
+	return true;
+}
+
 
 void Button::Paint(GC &gc, const crect &paintRect)
 {
-	unsigned colorBg = UiGetColor(uiBackground, 0, 0, 0x808080); //GetColor(0);
+	unsigned colorBg = UiGetColor(uiBackground, 0, 0, 0x808080); 
+	bool mode3d = UiGetBool(ui3d, 0, 0, true);
 	crect cr = this->ClientRect();
 	crect rect = cr;
 	DrawBorder(gc, rect, ColorTone(colorBg, +20));
@@ -153,39 +167,38 @@ void Button::Paint(GC &gc, const crect &paintRect)
 
 	if (pressed)
 	{
-		Draw3DButtonW2(gc, rect, colorBg, false);
-		rect.Dec();
-		rect.Dec();
-	} else {
-		Draw3DButtonW2(gc, rect, colorBg, true);
-		rect.Dec();
-		if (InFocus()) {
-			DrawBorder(gc, rect, /*GetColor(IC_FOCUS_MARK)*/ UiGetColor(uiFocusFrameColor, 0, 0, 0)); 
+		if (mode3d) {
+			Draw3DButtonW2(gc, rect, colorBg, false);
+			rect.Dec();
+			rect.Dec();
 		}
+	} else {
+		if (mode3d) {
+			Draw3DButtonW2(gc, rect, colorBg, true);
+			rect.Dec();
+		} else {
+			DrawBorder(gc, rect, colorBg);
+			rect.Dec();
+			DrawBorder(gc, rect, colorBg);
+		}
+		
+		if (InFocus()) {
+			DrawBorder(gc, rect, UiGetColor(uiFocusFrameColor, 0, 0, 0)); 
+		} 
+		
 		rect.Dec();
 	}
 
 	gc.SetFillColor(colorBg);
 	gc.FillRect(rect);
-	gc.SetTextColor(/*GetColor(IsEnabled() ? IC_TEXT : IC_GRAY_TEXT)*/ UiGetColor(uiColor, 0, 0, 0) );
-	gc.Set(GetFont());
-	cpoint tsize = gc.GetTextExtents(text.ptr());
+//	gc.SetTextColor(UiGetColor(uiColor, 0, 0, 0) );
 
-	/*
-	int l = tsize.x + (icon.ptr() ? icon->Width() + ICONX_RIGHTSPACE : 0);
-	
-	int w = rect.Width() - LEFTSPACE - RIGHTSPACE;
-	
-	if (icon.ptr()) w-=ICONX_RIGHTSPACE;
-	
-	//int x = rect.left + LEFTSPACE + (w > l ? (w - l)/2 : 0) +(pressed?2:0);
-	int x = rect.left + LEFTSPACE + (w-l)/2 +(pressed?2:0);
-	*/
-	
+	gc.Set(GetFont());
+	cpoint tsize = HkStringGetTextExtents(gc, text.ptr());
+
 	int l = tsize.x + (icon.ptr() ? icon->Width() + ICONX_RIGHTSPACE : 0);
 	int w = rect.Width();
 	int x = rect.left + (w > l ? (w - l)/2 : 0) +(pressed?2:0);
-
 	
 	if (icon.ptr())
 	{
@@ -193,7 +206,12 @@ void Button::Paint(GC &gc, const crect &paintRect)
 		x += icon->Width() + ICONX_RIGHTSPACE;
 	} 
 	gc.SetClipRgn(&rect);
-	gc.TextOutF(x, rect.top + (rect.Height()-tsize.y)/2+(pressed?2:0),text.ptr());
+
+	int color_text = UiGetColor(uiColor, 0, 0, 0x0);
+	int color_hotkey = UiGetColor(uiHotkeyColor, 0, 0, 0xFF);
+
+	//gc.TextOutF(x, rect.top + (rect.Height()-tsize.y)/2+(pressed?2:0),text.ptr());
+	HkStringTextOutF(gc, x, rect.top + (rect.Height() - tsize.y)/2 + (pressed?2:0), text.ptr(), color_text, color_hotkey);
 }
 
 Button::~Button(){}

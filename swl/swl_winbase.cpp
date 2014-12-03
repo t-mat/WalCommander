@@ -113,7 +113,7 @@ void Draw3DButtonW2(GC &gc, crect r, unsigned bg, bool up)
 
 
 ////////////////////////////////////////// StaticLine
-
+/*
 cpoint StaticTextSize(GC &gc, const unicode_t *s, cfont *font)
 {
 	cpoint p(0,0);
@@ -131,7 +131,7 @@ cpoint StaticTextSize(GC &gc, const unicode_t *s, cfont *font)
 	}
 	return p;
 }
-
+*/
 void DrawStaticText(GC &gc, int x, int y, const unicode_t *s, cfont *font, bool transparent)
 {
 	if (font) gc.Set(font);
@@ -166,6 +166,8 @@ cpoint GetStaticTextExtent(GC &gc, const unicode_t *s, cfont *font)
 	return res;
 }
 
+////////////////////////  StaticLine
+
 int uiClassStatic = GetUiID("Static");
 int StaticLine::UiGetClassId(){	return uiClassStatic;}
 
@@ -192,6 +194,64 @@ void StaticLine::Paint(GC &gc, const crect &paintRect)
 
 
 StaticLine::~StaticLine(){}
+
+
+//////////////////////////////////  HKStaticLine
+/*class HKStaticLine: public Win {
+	wal::carray<unicode_t> text;
+	Win *win;
+public:
+	HKStaticLine(int nId, Win *parent, const unicode_t *txt, crect *rect = 0);
+	void SetControlWin(Win *w);
+	virtual bool EventKeyPost(Win *focusWin, cevent_key* pEvent);
+	virtual int UiGetClassId();
+	virtual void Paint(GC &gc, const crect &paintRect);
+	virtual ~HKStaticLine();
+};*/
+
+
+int HKStaticLine::UiGetClassId(){	return uiClassStatic;}
+
+HKStaticLine::HKStaticLine(int nId, Win *parent, const unicode_t *txt, crect *rect)
+:	Win(Win::WT_CHILD, 0, parent, rect, nId), text(new_unicode_str(txt)),
+	controlWin(0)
+{
+	key = HkStringKey(text.ptr());
+	if (!rect) 
+	{
+		GC gc(this);
+		gc.Set(GetFont());
+		SetLSize(LSize(HkStringGetTextExtents(gc,txt)));
+	}
+}
+
+
+void HKStaticLine::Paint(GC &gc, const crect &paintRect)
+{
+	crect rect = ClientRect();
+	int color_text = UiGetColor(uiColor, 0, 0, 0x0);
+	int color_hotkey = (controlWin /*&& controlWin->InFocus()*/) ? 
+		UiGetColor(uiHotkeyColor, 0, 0, 0xFF) : color_text;
+
+	//int color_bg = UiGetColor(uiBackground, 0, 0, 0xFFFFFF);
+	gc.SetFillColor(UiGetColor(uiBackground, 0,0, 0xFFFFFF));
+
+	gc.FillRect(rect);
+	//gc.SetTextColor(UiGetColor(uiColor, 0,0, 0)/*GetColor(IsEnabled() ? IC_TEXT : IC_GRAY_TEXT)*/); //CCC
+	gc.Set(GetFont());
+	DrawStaticText(gc,0,0,text.ptr());
+	HkStringTextOutF(gc, 0, 0, text.ptr(), color_text, color_hotkey);
+}
+
+bool HKStaticLine::EventKeyPost(Win *focusWin, cevent_key* pEvent)
+{
+	if (!key || !controlWin || controlWin->InFocus() || pEvent->Type() != EV_KEYDOWN) return false;
+	if (UnicodeUC(key) != UnicodeUC(pEvent->Char())) return false;
+	controlWin->SetFocus();
+	return true;
+}
+
+HKStaticLine::~HKStaticLine(){}
 
 
 //////////////////////////////////// ToolTip
@@ -251,6 +311,120 @@ void ToolTipShow(Win *w, int x, int y, const char *s)
 void ToolTipHide()
 {
 	tip = 0;
+}
+
+
+//////////////////////////// HkString
+
+void HkStringTextOutF(GC& gc, int x, int y, const unicode_t *str, int color_text, int color_hotkey)
+{
+	unicode_t *p = unicode_strchr(str, '&');
+	if (!p) 
+	{
+		gc.SetTextColor(color_text);
+		gc.TextOutF(x, y, str);
+		return;
+	}
+	
+	
+	if (p > str)
+	{
+		int count = p -str;
+		gc.SetTextColor(color_text);
+		gc.TextOutF(x, y, str, count);
+		x += gc.GetTextExtents(str, count).x;
+	}
+	
+	str = p+1;
+	
+	if (!*str) return;
+	gc.SetTextColor(color_hotkey);
+	gc.TextOutF(x, y, str, 1);
+	x += gc.GetTextExtents(str, 1).x;
+	
+	str++;
+	if (!*str) return;
+	
+	gc.SetTextColor(color_text);
+	gc.TextOutF(x, y, str);
+}
+
+void HkStringTextOut(GC& gc, int x, int y, const unicode_t *str, int color_text, int color_hotkey)
+{
+	unicode_t *p = unicode_strchr(str, '&');
+	if (!p) 
+	{
+		gc.SetTextColor(color_text);
+		gc.TextOut(x, y, str);
+		return;
+	}
+	
+	
+	if (p > str)
+	{
+		int count = p -str;
+		gc.SetTextColor(color_text);
+		gc.TextOut(x, y, str, count);
+		x += gc.GetTextExtents(str, count).x;
+	}
+	
+	str = p+1;
+	
+	if (!*str) return;
+	gc.SetTextColor(color_hotkey);
+	gc.TextOut(x, y, str, 1);
+	x += gc.GetTextExtents(str, 1).x;
+	
+	str++;
+	if (!*str) return;
+	
+	gc.SetTextColor(color_text);
+	gc.TextOut(x, y, str);
+}
+
+
+cpoint HkStringGetTextExtents(GC& gc, const unicode_t *str)
+{
+	unicode_t *p = unicode_strchr(str, '&');
+	
+	if (!p) 
+		return gc.GetTextExtents(str);
+	
+	cpoint res(0,0);
+	int width = 0;
+	
+	cpoint size;
+	
+	if (p > str)
+	{
+		size =  gc.GetTextExtents(str, p - str);
+		res.x += size.x;
+		if (size.y > res.y) res.y = size.y;
+	}
+	
+	str = p + 1;
+	
+	if (!*str) return res;
+	
+	size = gc.GetTextExtents(str, 1);
+	res.x += size.x;
+	if (size.y > res.y) res.y = size.y;
+	
+	str++;
+	if (!*str) return res;
+	
+	size = gc.GetTextExtents(str);
+	res.x += size.x;
+	if (size.y > res.y) res.y = size.y;
+	
+	return res;
+}
+
+unicode_t HkStringKey(const unicode_t *str)
+{
+	if (!str) return 0;
+	unicode_t *p = unicode_strchr(str, '&');
+	return p ? p[1] : 0;
 }
 
 

@@ -62,6 +62,14 @@ typedef time_t FSTime;
 #define S_IXOTH	00001	//others have execute permission
 #endif
 
+struct FSStatVfs {
+	int64 size;
+	int64 avail;
+	
+	FSStatVfs():size(-1),avail(-1){}
+};
+
+
 struct FSStat {
 	FSString link;
 
@@ -432,6 +440,7 @@ public:
 	virtual int Stat(FSPath &path, FSStat *st, int *err, FSCInfo *info);
 	virtual int FStat(int fd, FSStat *st, int *err, FSCInfo *info);
 	virtual int Symlink	(FSPath &path, FSString &str, int *err, FSCInfo *info);
+	virtual int StatVfs(FSPath &path, FSStatVfs *st, int *err, FSCInfo *info);
 	
 	virtual FSString Uri(FSPath &path)							= 0;
 	
@@ -533,6 +542,7 @@ public:
 	virtual int Stat	(FSPath &path, FSStat *st, int *err, FSCInfo *info);
 	virtual int FStat(int fd, FSStat *st, int *err, FSCInfo *info);
 	virtual int Symlink	(FSPath &path, FSString &str, int *err, FSCInfo *info);
+	virtual int StatVfs(FSPath &path, FSStatVfs *st, int *err, FSCInfo *info);
 	virtual FSString Uri(FSPath &path);
 	
 	virtual unicode_t* GetUserName(int user, unicode_t buf[64]);

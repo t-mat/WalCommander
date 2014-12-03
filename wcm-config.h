@@ -26,6 +26,9 @@ struct WcmConfig {
 	void MapBool(const char *section, const char *name, bool *pInt, bool def);
 	void MapStr(const char *section, const char *name, carray<char> *pStr, const char *def = 0);
 
+/////////////////////////////////
+	carray<char> style;
+
 	bool systemAskOpenExec;
 	bool systemEscPanel;
 	carray<char> systemLang; //"+" - auto "-" -internal eng. 
@@ -37,19 +40,19 @@ struct WcmConfig {
 	bool panelShowHiddenFiles;
 	bool panelShowIcons;
 	bool panelCaseSensitive;
-	int panelColorMode;
+//	int panelColorMode;
 	int panelModeLeft;
 	int panelModeRight;
 	
 	bool editSavePos;
 	bool editAutoIdent;
 	int editTabSize;
-	int editColorMode;
+//	int editColorMode;
 	bool editShl;
 	
 	int terminalBackspaceKey;
 	
-	int viewColorMode;
+//	int viewColorMode;
 	
 	//fonts
 	carray<char> panelFontUri;

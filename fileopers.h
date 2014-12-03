@@ -41,6 +41,7 @@ public:
 	FSPath path; //??volatile
 	FSString errorString; //??volatile
 	cptr<FSList> list; //??volatile
+	FSStatVfs vst;	//??volatile
 	
 	OperRDData(NCDialogParent *p):OperData(p), executed(false){}
 	

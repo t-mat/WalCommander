@@ -47,6 +47,7 @@ void PopupMenu::DrawItem(GC &gc, int n)
 	if (n == selected) ucl.Set(uiCurrentItem, true);
 		
 	int color_text = UiGetColor(uiColor, uiItem, &ucl, 0x0);
+	int color_hotkey = UiGetColor(uiHotkeyColor, uiItem, &ucl, 0xFF);
 	int color_bg = UiGetColor(uiBackground, uiItem, &ucl, 0xFFFFFF);
 	int color_left = UiGetColor(uiBackground, 0, 0, 0xFFFFFF);
 
@@ -64,6 +65,10 @@ void PopupMenu::DrawItem(GC &gc, int n)
 	gc.SetLine(colorLine);
 	gc.MoveTo(r.left,r.top);
 	gc.LineTo(r.left,r.bottom);
+/*
+void HkStringTextOutF(GC& gc, int x, int y, const unicode_t *str, int color_text, int color_hotkey);
+cpoint HkStringGetTextExtents(GC& gc, const unicode_t *str);
+*/
 
 	if (IsSplit(n))
 	{
@@ -77,7 +82,12 @@ void PopupMenu::DrawItem(GC &gc, int n)
 		unicode_t *lText = list[n].data->leftText.ptr();
 		unicode_t *rText = list[n].data->rightText.ptr();
 		
-		if (lText) gc.TextOutF(MENU_LEFT_BLOCK + MENU_TEXT_OFFSET, r.top + (height - fontHeight)/2, lText);
+		if (lText) {
+			HkStringTextOutF(gc, MENU_LEFT_BLOCK + MENU_TEXT_OFFSET, r.top + (height - fontHeight)/2, lText, 
+				color_text,color_hotkey);
+			//gc.TextOutF(MENU_LEFT_BLOCK + MENU_TEXT_OFFSET, r.top + (height - fontHeight)/2, lText);
+		}
+		
 		if (rText) gc.TextOutF(MENU_LEFT_BLOCK + MENU_TEXT_OFFSET + leftWidth + fontHeight, r.top + (height - fontHeight)/2, rText);
 
 		if (IsSub(n)) {
@@ -130,7 +140,8 @@ PopupMenu::PopupMenu(int nId, Win*parent, MenuData *d, int x, int y,Win *_cmdOwn
 		} else {
 			cpoint p;
 			if (node.data->leftText.ptr()) {
-				p = gc.GetTextExtents(node.data->leftText.ptr());
+				//p = gc.GetTextExtents(node.data->leftText.ptr());
+				p = HkStringGetTextExtents(gc, node.data->leftText.ptr());
 				if (leftWidth < p.x) leftWidth = p.x;
 			}
 			
@@ -321,6 +332,39 @@ bool PopupMenu::EventKey(cevent_key* pEvent)
 		}
 	}
 	return false;
+}
+
+bool PopupMenu::EventKeyPost(Win *focusWin, cevent_key* pEvent)
+{
+	if (pEvent->Type() != EV_KEYDOWN) return false;
+	
+	if (sub.ptr() && sub->EventKeyPost(focusWin, pEvent)) return true;
+	
+	for (int i = 0; i < list.count(); i++)
+	{
+		if (list[i].data && list[i].data->leftText.ptr())
+		{
+			unicode_t key = HkStringKey(list[i].data->leftText.ptr());
+			if (key && UnicodeUC(key) == UnicodeUC(pEvent->Char()) ) 
+			{
+				if (!SetSelected(i)) return true;
+				if (IsCmd(selected) && IsEnabled(selected))
+				{
+					int id = list[selected].data->id;
+	
+					if (IsModal()) EndModal(id);
+					else if (Parent()) 
+						Parent()->Command(id,0,this, 0);
+	
+					else {/* Botva */}
+					return true;
+				}
+				return OpenSubmenu();
+			}
+		}
+	}
+
+	return IsModal();
 }
 
 void PopupMenu::Paint(GC &gc, const crect &paintRect)

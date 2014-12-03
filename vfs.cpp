@@ -23,6 +23,7 @@ int FS::ReadDir	(FSList *list, FSPath &path,  int *err,FSCInfo *info)		{ SetErro
 int FS::Stat(FSPath &path, FSStat *st, int *err, FSCInfo *info)			{ SetError(err,0); return -1; }
 int FS::FStat(int fd, FSStat *st, int *err, FSCInfo *info)		{ SetError(err,0); return -1; }
 int FS::Symlink	(FSPath &path, FSString &str, int *err, FSCInfo *info)		{ SetError(err,0); return -1; }
+int FS::StatVfs(FSPath &path, FSStatVfs *st, int *err, FSCInfo *info)		{ SetError(err,0); return -1; }
 
 unicode_t* FS::GetUserName(int user, unicode_t buf[64]){ buf[0]=0; return buf; };
 unicode_t* FS::GetGroupName(int group, unicode_t buf[64]){ buf[0]=0; return buf; };
@@ -73,7 +74,7 @@ time_t FSTime::GetTimeT()
 	if (flags & TIME_T_OK) return tt;
 	if ((flags & FILETIME_OK) == 0) return 0;
 	tt = FILETIME_to_TT(ft);
-	flags != TIME_T_OK;
+	flags |= TIME_T_OK;
 	return tt;
 }
 
@@ -83,7 +84,7 @@ FILETIME FSTime::GetFileTime()
 	static FILETIME t0={0,0};
 	if ((flags & TIME_T_OK)==0) return t0;
 	TT_to_FILETIME(tt, ft);
-	flags != FILETIME_OK;
+	flags |= FILETIME_OK;
 	return ft;
 }
 
@@ -293,7 +294,7 @@ int FSSys::MkDir(FSPath &path, int mode, int *err,  FSCInfo *info)
 {
 	if (CreateDirectoryW(SysPathStr(_drive, path.GetUnicode('\\')).ptr(), 0)) return 0;
 	DWORD e = GetLastError();
-	if (e == ERROR_ALREADY_EXISTS) return 0;
+	//if (e == ERROR_ALREADY_EXISTS) return 0;
 	SetError(err, e);
 	return -1;
 }
@@ -542,6 +543,52 @@ int FSSys::Symlink(FSPath &path, FSString &str, int *err, FSCInfo *info)
 		//...
 	SetError(err, 50);
 	return -1;
+}
+
+
+int FSSys::StatVfs(FSPath &path, FSStatVfs *vst, int *err, FSCInfo *info)
+{
+	ccollect<wchar_t, 0x100> root;
+
+	root.append('\\');
+	root.append('\\');
+	root.append('?');
+	root.append('\\');
+
+	if (Drive() == -1) { 
+		root.append('U');
+		root.append('N');
+		root.append('C');
+		root.append('\\');
+		int n = path.Count()<3 ? path.Count() : 3;
+		for (int i = 1; i < n; i++)
+		{
+			const unicode_t * s = path.GetItem(i)->GetUnicode();
+			for (;*s;s++) root.append(*s);
+			root.append('\\');
+		}
+	} else {
+		root.append(Drive()+'a');
+		root.append(':');
+		root.append('\\');
+	}
+
+	root.append(0);
+
+	DWORD SectorsPerCluster;
+	DWORD BytesPerSector;
+	DWORD NumberOfFreeClusters;
+	DWORD TotalNumberOfClusters;
+
+	if (!GetDiskFreeSpaceW( root.ptr(), &SectorsPerCluster, &BytesPerSector, &NumberOfFreeClusters, &TotalNumberOfClusters )) 
+	{
+		SetError(err, GetLastError());
+		return -1;
+	}
+
+	vst->size = int64(TotalNumberOfClusters) * SectorsPerCluster * BytesPerSector;
+	vst->avail = int64(NumberOfFreeClusters) * SectorsPerCluster * BytesPerSector;
+	return 0;
 }
 
 FSString FSSys::Uri(FSPath &path)
@@ -1121,6 +1168,22 @@ int FSSys::Symlink(FSPath &path, FSString &str, int *err, FSCInfo *info)
 	return 0;
 }
 
+#include <sys/statvfs.h>
+
+int FSSys::StatVfs(FSPath &path, FSStatVfs *vst, int *err, FSCInfo *info)
+{
+	struct statvfs st;
+	if (statvfs((char*)path.GetString(sys_charset_id), &st))
+	{
+		SetError(err, errno);
+		return -1;
+	}
+	
+	vst->size = int64(st.f_blocks) * st.f_frsize;
+	vst->avail = int64(st.f_bavail) * st.f_bsize;
+	return 0;
+}
+
 FSString FSSys::Uri(FSPath &path)
 {
 	return FSString(path.GetUnicode());
@@ -1547,18 +1610,18 @@ unicode_t* FSStat::GetMTimeStr(unicode_t ret[64])
 	FILETIME lt;
 	SYSTEMTIME st;
 	if (!FileTimeToLocalFileTime(&mt, &lt) || !FileTimeToSystemTime(&lt, &st)) { ret[0]='?'; ret[1]=0; return ret; }
-	sprintf(str, "%02i/%02i/%04i-%02i:%02i:%02i", 
+	sprintf(str, "%02i/%02i/%04i %02i:%02i:%02i", 
 		int(st.wDay), int(st.wMonth), int(st.wYear),
 		int(st.wHour), int(st.wMinute), int(st.wSecond));
 #else
 	time_t mt = mtime;
 	struct tm *p = localtime(&mt);
 	if (p) {
-	sprintf(str, "%02i/%02i/%04i-%02i:%02i:%02i", 
+		sprintf(str, "%02i/%02i/%04i %02i:%02i:%02i", 
 		p->tm_mday, p->tm_mon+1, p->tm_year + 1900, // % 100, 
 		p->tm_hour, p->tm_min, p->tm_sec);
 	} else {
-		sprintf(str, "%02i/%02i/%04i-%02i:%02i:%02i", 
+		sprintf(str, "%02i/%02i/%04i %02i:%02i:%02i", 
 		int(0), int(0), int(0) + 1900, // % 100, 
 		int(0), int(0), int(0));
 
@@ -1618,7 +1681,7 @@ unicode_t* FSStat::GetPrintableSizeStr(unicode_t buf[64])
 
 /////////////////////////////////////  FSNode ////////////////////////////////////////
 
-extern unsigned  UnicodeLC(unsigned ch);
+//extern unsigned  UnicodeLC(unsigned ch);
 
 inline const unicode_t* unicode_rchr(const unicode_t *s, int c)
 {

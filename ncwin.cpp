@@ -40,15 +40,29 @@
 #include "ux_util.h"
 #endif
 
-carray<unicode_t> searchTextString;
 SearchParams textSearchParams;
 ReplaceEditParams textReplaceParams;
+
+void SetCommonSearchParams(const unicode_t *searchString, bool sens)
+{
+	if (searchString && searchString[0])
+	{
+		//searchString может быть строкой из textSearchParams или textReplaceParams, 
+		//поэтому надо создать временную, чтоб не затерлась ранше времени
+
+		carray<unicode_t> txt = new_unicode_str(searchString);
+
+		textSearchParams.txt = new_unicode_str(txt.ptr());
+		textSearchParams.sens = sens;
+
+		textReplaceParams.from = new_unicode_str(txt.ptr());
+		textReplaceParams.sens = sens;
+	}
+}
 
 static crect acWinRect(0,0,850,500);
 
 static unicode_t panelButtonStr[] = {'*',0};
-
-//static char verString[] = "Wal Commander v 0.8.2 beta\nCopyright (c) by Valery Goryachev 2011";
 
 void NCWin::SetToolbarPanel()
 {
@@ -89,7 +103,9 @@ int uiClassNCWin = GetUiID("NCWin");
 int uiCommandLine = GetUiID("command-line");
 
 NCWin::NCWin()
-:	NCDialogParent(WT_MAIN, WH_SYSMENU | WH_RESIZE | WH_MINBOX | WH_MAXBOX | WH_USEDEFPOS, uiClassNCWin, 0, &acWinRect),
+:	NCDialogParent(WT_MAIN, 
+				WH_CLICKFOCUS | 
+				WH_SYSMENU | WH_RESIZE | WH_MINBOX | WH_MAXBOX | WH_USEDEFPOS, uiClassNCWin, 0, &acWinRect),
 	_lo(5,1),
 	_terminal(0, this),
 	_lpanel(1,2),
@@ -159,79 +175,79 @@ NCWin::NCWin()
 
 	_buttonWin.Set(panelNormalButtons);
 
-	_mdLeft.AddCmd(ID_PANEL_BRIEF_L,  	_LT("Brief"),			"Ctrl-1");
-	_mdLeft.AddCmd(ID_PANEL_MEDIUM_L,	_LT("Medium"),			"Ctrl-2");
-	_mdLeft.AddCmd(ID_PANEL_TWO_COLUMNS_L,	_LT("Two columns"),		"Ctrl-3");
-	_mdLeft.AddCmd(ID_PANEL_FULL_L,		_LT("Full (name)"),		"Ctrl-4");
-	_mdLeft.AddCmd(ID_PANEL_FULL_ST_L,	_LT("Full (size, time)"), 	"Ctrl-5");
-	_mdLeft.AddCmd(ID_PANEL_FULL_ACCESS_L,	_LT("Full (access)"),		"Ctrl-6");
+	_mdLeft.AddCmd(ID_PANEL_BRIEF_L,  	_LT("&Brief"),			"Ctrl-1");
+	_mdLeft.AddCmd(ID_PANEL_MEDIUM_L,	_LT("&Medium"),			"Ctrl-2");
+	_mdLeft.AddCmd(ID_PANEL_TWO_COLUMNS_L,	_LT("&Two columns"),		"Ctrl-3");
+	_mdLeft.AddCmd(ID_PANEL_FULL_L,		_LT("Full (&name)"),		"Ctrl-4");
+	_mdLeft.AddCmd(ID_PANEL_FULL_ST_L,	_LT("Full (size, &time)"), 	"Ctrl-5");
+	_mdLeft.AddCmd(ID_PANEL_FULL_ACCESS_L,	_LT("Full (&access)"),		"Ctrl-6");
 	_mdLeft.AddSplit();
 
-	_mdRight.AddCmd(ID_PANEL_BRIEF_R,	_LT("Brief"),			"Ctrl-1");
-	_mdRight.AddCmd(ID_PANEL_MEDIUM_R,	_LT("Medium"),			"Ctrl-2");
-	_mdRight.AddCmd(ID_PANEL_TWO_COLUMNS_R,	_LT("Two columns"),		"Ctrl-3");
-	_mdRight.AddCmd(ID_PANEL_FULL_R,	_LT("Full (name)"),		"Ctrl-4");
-	_mdRight.AddCmd(ID_PANEL_FULL_ST_R,	_LT("Full (size, time)"),	"Ctrl-5");
-	_mdRight.AddCmd(ID_PANEL_FULL_ACCESS_R,	_LT("Full (access)"),		"Ctrl-6");
+	_mdRight.AddCmd(ID_PANEL_BRIEF_R,	_LT("&Brief"),			"Ctrl-1");
+	_mdRight.AddCmd(ID_PANEL_MEDIUM_R,	_LT("&Medium"),			"Ctrl-2");
+	_mdRight.AddCmd(ID_PANEL_TWO_COLUMNS_R,	_LT("&Two columns"),		"Ctrl-3");
+	_mdRight.AddCmd(ID_PANEL_FULL_R,	_LT("Full (&name)"),		"Ctrl-4");
+	_mdRight.AddCmd(ID_PANEL_FULL_ST_R,	_LT("Full (size, &time)"),	"Ctrl-5");
+	_mdRight.AddCmd(ID_PANEL_FULL_ACCESS_R,	_LT("Full (&access)"),		"Ctrl-6");
 	_mdRight.AddSplit();
 
-	_mdLeftSort.AddCmd(ID_SORT_BY_NAME_L,   _LT("SM>Name", "Name"));
-	_mdLeftSort.AddCmd(ID_SORT_BY_EXT_L,	_LT("SM>Extension", "Extension"));
-	_mdLeftSort.AddCmd(ID_SORT_BY_MODIF_L,  _LT("SM>Modif. Time", "Modif. Time"));
-	_mdLeftSort.AddCmd(ID_SORT_BY_SIZE_L,   _LT("SM>Size", "Size"));
-	_mdLeftSort.AddCmd(ID_UNSORT_L, 	_LT("SM>Unsorted", "Unsorted"));
+	_mdLeftSort.AddCmd(ID_SORT_BY_NAME_L,   _LT("SM>Name", "&Name"));
+	_mdLeftSort.AddCmd(ID_SORT_BY_EXT_L,	_LT("SM>Extension", "E&xtension"));
+	_mdLeftSort.AddCmd(ID_SORT_BY_MODIF_L,  _LT("SM>Modif. Time", "Modif. &Time"));
+	_mdLeftSort.AddCmd(ID_SORT_BY_SIZE_L,   _LT("SM>Size", "&Size"));
+	_mdLeftSort.AddCmd(ID_UNSORT_L, 	_LT("SM>Unsorted", "&Unsorted"));
 	
-	_mdLeft.AddSub( _LT("Sort mode") , &_mdLeftSort);
-	_mdLeft.AddCmd(ID_DEV_SELECT_LEFT, _LT("Change drive"),	"Shift-F1");
+	_mdLeft.AddSub( _LT("&Sort mode") , &_mdLeftSort);
+	_mdLeft.AddCmd(ID_DEV_SELECT_LEFT, _LT("&Change drive"),	"Shift-F1");
 	
-	_mdRightSort.AddCmd(ID_SORT_BY_NAME_R,  _LT("SM>Name", "Name"));
-	_mdRightSort.AddCmd(ID_SORT_BY_EXT_R,	_LT("SM>Extension", "Extension"));
-	_mdRightSort.AddCmd(ID_SORT_BY_MODIF_R, _LT("SM>Modif. Time", "Modif. Time"));
-	_mdRightSort.AddCmd(ID_SORT_BY_SIZE_R,  _LT("SM>Size", "Size"));
-	_mdRightSort.AddCmd(ID_UNSORT_R,	_LT("SM>Unsorted", "Unsorted"));
+	_mdRightSort.AddCmd(ID_SORT_BY_NAME_R,  _LT("SM>Name", "&Name"));
+	_mdRightSort.AddCmd(ID_SORT_BY_EXT_R,	_LT("SM>Extension", "E&xtension"));
+	_mdRightSort.AddCmd(ID_SORT_BY_MODIF_R, _LT("SM>Modif. Time", "Modif. &Time"));
+	_mdRightSort.AddCmd(ID_SORT_BY_SIZE_R,  _LT("SM>Size", "&Size"));
+	_mdRightSort.AddCmd(ID_UNSORT_R,	_LT("SM>Unsorted", "&Unsorted"));
 	
-	_mdRight.AddSub(_LT("Sort mode"), &_mdRightSort);
-	_mdRight.AddCmd(ID_DEV_SELECT_RIGHT, _LT("Change drive"),"Shift-F2");
+	_mdRight.AddSub(_LT("&Sort mode"), &_mdRightSort);
+	_mdRight.AddCmd(ID_DEV_SELECT_RIGHT, _LT("&Change drive"),"Shift-F2");
 	
 //#ifndef _WIN32 //пока там только 1 параметр для unix
 //теперь 2
-	_mdOptions.AddCmd(ID_CONFIG_SYSTEM,	_LT("System settings"));
+	_mdOptions.AddCmd(ID_CONFIG_SYSTEM,	_LT("S&ystem settings"));
 //#endif
-	_mdOptions.AddCmd(ID_CONFIG_PANEL,	_LT("Panel settings"));
-	_mdOptions.AddCmd(ID_CONFIG_EDITOR,	_LT("Editor settings"));
+	_mdOptions.AddCmd(ID_CONFIG_PANEL,	_LT("&Panel settings"));
+	_mdOptions.AddCmd(ID_CONFIG_EDITOR,	_LT("&Editor settings"));
 	
 #ifndef _WIN32	
-	_mdOptions.AddCmd(ID_CONFIG_TERMINAL,	_LT("Terminal settings"));
+	_mdOptions.AddCmd(ID_CONFIG_TERMINAL,	_LT("&Terminal settings"));
 #endif	
 
-	_mdOptions.AddCmd(ID_CONFIG_STYLE,	_LT("Styles"));
+	_mdOptions.AddCmd(ID_CONFIG_STYLE,	_LT("Sty&les"));
 	_mdOptions.AddSplit();
-	_mdOptions.AddCmd(ID_CONFIG_SAVE,	_LT("Save setup"),	"Shift-F9");
+	_mdOptions.AddCmd(ID_CONFIG_SAVE,	_LT("&Save setup"),	"Shift-F9");
 	
 
-	_menu.Add(&_mdLeft, utf8_to_unicode( _LT("Left") ).ptr());
-	_menu.Add(&_mdFiles, utf8_to_unicode( _LT("Files") ).ptr());
-	_menu.Add(&_mdCommands, utf8_to_unicode( _LT("Commands") ).ptr());
-	_menu.Add(&_mdOptions, utf8_to_unicode( _LT("Options") ).ptr());
-	_menu.Add(&_mdRight, utf8_to_unicode( _LT("Right") ).ptr());
+	_menu.Add(&_mdLeft, utf8_to_unicode( _LT("&Left") ).ptr());
+	_menu.Add(&_mdFiles, utf8_to_unicode( _LT("&Files") ).ptr());
+	_menu.Add(&_mdCommands, utf8_to_unicode( _LT("&Commands") ).ptr());
+	_menu.Add(&_mdOptions, utf8_to_unicode( _LT("&Options") ).ptr());
+	_menu.Add(&_mdRight, utf8_to_unicode( _LT("&Right") ).ptr());
 
-	_mdFiles.AddCmd(ID_VIEW, _LT("View"),	"F3");
-	_mdFiles.AddCmd(ID_EDIT, _LT("Edit"),	"F4");
-	_mdFiles.AddCmd(ID_COPY, _LT("Copy"),	"F5");
-	_mdFiles.AddCmd(ID_MOVE, _LT("Move"),	"F6");
-	_mdFiles.AddCmd(ID_MKDIR, _LT("Create new directory"),	"F7");
-	_mdFiles.AddCmd(ID_DELETE, _LT("Delete"),	"F8");
+	_mdFiles.AddCmd(ID_VIEW, _LT("&View"),	"F3");
+	_mdFiles.AddCmd(ID_EDIT, _LT("&Edit"),	"F4");
+	_mdFiles.AddCmd(ID_COPY, _LT("&Copy"),	"F5");
+	_mdFiles.AddCmd(ID_MOVE, _LT("&Rename or move"),	"F6");
+	_mdFiles.AddCmd(ID_MKDIR, _LT("&Make folder"),	"F7");
+	_mdFiles.AddCmd(ID_DELETE, _LT("&Delete"),	"F8");
 	_mdFiles.AddSplit();
-	_mdFiles.AddCmd(ID_GROUP_SELECT, _LT("Select group")); 
-	_mdFiles.AddCmd(ID_GROUP_UNSELECT, _LT("Unselect group"));
-	_mdFiles.AddCmd(ID_GROUP_INVERT, _LT("Invert group"));
+	_mdFiles.AddCmd(ID_GROUP_SELECT, _LT("Select &group")); 
+	_mdFiles.AddCmd(ID_GROUP_UNSELECT, _LT("U&nselect group"));
+	_mdFiles.AddCmd(ID_GROUP_INVERT, _LT("&Invert group"));
 	
-	_mdCommands.AddCmd(ID_SEARCH_2, _LT("Find file"), 	"Shift F7");
-	_mdCommands.AddCmd(ID_HISTORY,	_LT("History"),	"Shift-F8 (Ctrl-K)");
-	_mdCommands.AddCmd(ID_CTRL_O,	_LT("Panel on/off"),	"Ctrl-O");
-	_mdCommands.AddCmd(ID_PANEL_EQUAL, _LT("Equal panels"),	"Ctrl =");
+	_mdCommands.AddCmd(ID_SEARCH_2, _LT("&Find file"), 	"Shift F7");
+	_mdCommands.AddCmd(ID_HISTORY,	_LT("&History"),	"Shift-F8 (Ctrl-K)");
+	_mdCommands.AddCmd(ID_CTRL_O,	_LT("&Panel on/off"),	"Ctrl-O");
+	_mdCommands.AddCmd(ID_PANEL_EQUAL, _LT("E&qual panels"),	"Ctrl =");
 	_mdCommands.AddSplit();
-	_mdCommands.AddCmd(ID_SHORTCUTS, _LT("Folder shortcuts"),	"Ctrl D");
+	_mdCommands.AddCmd(ID_SHORTCUTS, _LT("Fol&der shortcuts"),	"Ctrl D");
 
 	_edit.SetFocus();
 
@@ -896,6 +912,22 @@ void NCWin::SelectDrive(PanelWin *p)
 	};
 }
 
+static cptr<FSPath> PathMinus(FSPath &a, FSPath &b)
+{
+	int n = a.Count() < b.Count() ? a.Count() : b.Count();
+	int i;
+	for (i = 0; i < n; i++)
+		if (a.GetItem(i)->Cmp( *b.GetItem(i) ) != 0) return 0;
+		
+	if (i < b.Count()) return 0;	
+	
+	cptr<FSPath> path = new FSPath;
+	for (; i < a.Count() ; i++)
+		path->PushStr(*a.GetItem(i));
+		
+	return path;
+}
+
 void NCWin::CreateDirectory()
 {
 	if (_mode != PANEL) return;
@@ -923,10 +955,22 @@ void NCWin::CreateDirectory()
 		if (!::MkDir(fs, path, this)) 
 			return;
 		
+		cptr<FSPath> minus = PathMinus(path, _panel->GetPath());
+		if (minus.ptr() && minus->Count() == 1)
+			_panel->Reread(minus->GetItem(0));
+		else 
+			_panel->Reread();
+		
+		(_panel == &_leftPanel ? &_rightPanel : &_leftPanel)->Reread();
+
+		return; //!
+		
 	} catch (cexception *ex) {
 		NCMessageBox(this, _LT("Create directory"), ex->message(), true);
 		ex->destroy();
 	};
+	
+
 	_leftPanel.Reread();
 	_rightPanel.Reread();
 }
@@ -988,7 +1032,7 @@ void NCWin::ViewExit()
 }
 
 
-static cstrhash<EditPoint, unicode_t> editPosHash;
+static cstrhash<EditFullPosition, unicode_t> editPosHash;
 
 
 void NCWin::Edit(bool enterFileName)
@@ -1028,7 +1072,7 @@ void NCWin::Edit(bool enterFileName)
 
 		
 		if (wcmConfig.editSavePos)
-			_editor.SetCursorPos(editPosHash[fs->Uri(path).GetUnicode()]);
+			_editor.SetFullPosition(editPosHash[fs->Uri(path).GetUnicode()]);
 		else 
 			_editor.SetCursorPos(EditPoint(0,0));
 		
@@ -1060,6 +1104,22 @@ void NCWin::CtrlEnter()
 		if (spaces) _edit.Insert('"');
 		_edit.Insert(' ');
 	}
+}
+
+void NCWin::PastePanelPath( PanelWin* p, bool AddTrailingSpace )
+{
+	if ( !p || _mode != PANEL ) { return; }
+
+	FSString uri = p->UriOfDir();
+	const unicode_t *str = uri.GetUnicode();
+	bool spaces = StrHaveSpace(str);
+
+	if (spaces) _edit.Insert('"');
+	_edit.Insert(str);
+	if (spaces) _edit.Insert('"');
+
+	if (AddTrailingSpace) 
+		_edit.Insert(' ');
 }
 
 void NCWin::CtrlF()
@@ -1232,7 +1292,22 @@ void NCWin::Move(bool shift)
 		destFs = ParzeURI(str.ptr(), destPath, checkFS, 2);
 	}
 	
+	
+	FSString item;
+	
+	cptr<FSPath> mP = PathMinus(destPath, srcPath);
+	
+	if (list.ptr() && list->Count() == 1 && destPath.Count()>0 && mP.ptr() && mP->Count()==1)
+		item.Copy(*destPath.GetItem(destPath.Count()-1));
+	
 	MoveFiles(srcFs, srcPath, list, destFs, destPath, this);
+	
+	if (!item.IsNull())
+	{
+		_panel->Reread(&item);
+		(_panel == &_leftPanel ? &_rightPanel : &_leftPanel)->Reread();
+		return;
+	}
 
 	_leftPanel.Reread();
 	_rightPanel.Reread();
@@ -1278,8 +1353,8 @@ void NCWin::SaveSetup()
 		NCMessageBox(this, _LT("Save setup"), ex->message(), true);
 		ex->destroy();
 	}
-
 }
+
 
 void NCWin::Search()
 {
@@ -1372,6 +1447,8 @@ void NCWin::EditSearch(bool next)
 	{
 		if (!_editor.Search(textSearchParams.txt.ptr(), textSearchParams.sens))
 			NCMessageBox(this, _LT("Search"), _LT("String not found"), true);
+
+		SetCommonSearchParams(textSearchParams.txt.ptr(), textSearchParams.sens);
 	}
 }
 
@@ -1385,6 +1462,8 @@ void NCWin::EditReplace()
 		unicode_t *to = textReplaceParams.to.ptr() && textReplaceParams.to[0] ? textReplaceParams.to.ptr() : &empty;
 		if (!_editor.Replace(textReplaceParams.from.ptr(), to, textReplaceParams.sens))
 			NCMessageBox(this, _LT("Replace"), _LT("String not found"), true);
+
+		SetCommonSearchParams(textReplaceParams.from.ptr(), textReplaceParams.sens);
 	}
 }
 
@@ -1396,6 +1475,8 @@ void NCWin::ViewSearch(bool next)
 	{
 		if (!_viewer.Search(textSearchParams.txt.ptr(), textSearchParams.sens))
 			NCMessageBox(this, _LT("Search"), _LT("String not found"), true);
+
+		SetCommonSearchParams(textSearchParams.txt.ptr(), textSearchParams.sens);
 	}
 }
 
@@ -1408,7 +1489,7 @@ void NCWin::EditExit()
 	{
 		FSPath path;
 		_editor.GetPath(path);
-		editPosHash[fs->Uri(path).GetUnicode()] = _editor.GetCursorPos();
+		editPosHash[fs->Uri(path).GetUnicode()] = _editor.GetFullPosition();
 	}
 	
 	if (_editor.Changed())
@@ -1644,6 +1725,8 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 				_panel->KeyPrior(shift, &_shiftSelectType);	return true;
 
 			case FC(VK_PRIOR, KM_CTRL):  _panel->DirUp(); return true;
+			
+			case FC(VK_NEXT, KM_CTRL):  _panel->DirEnter(); return true;
 
 			case FC(VK_NEXT, KM_SHIFT):
 			case VK_NEXT:	
@@ -1747,9 +1830,20 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 				CtrlEnter();
 			break;
 
+		case FC( VK_BRACKETLEFT, KM_CTRL ):
+			if (_edit.IsVisible())
+				PastePanelPath( &_leftPanel, false );
+			break;
+
+		case FC( VK_BRACKETRIGHT, KM_CTRL ):
+			if (_edit.IsVisible())
+				PastePanelPath( &_rightPanel, false );
+			break;
+
 		case VK_TAB: Tab(false); break;
 		case FC(VK_TAB, KM_SHIFT): Tab(true); break;
 
+		case FC(VK_RETURN, KM_SHIFT):
 		case VK_RETURN:
 			{
 				if (_edit.IsVisible())
@@ -1833,10 +1927,10 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 							break;
 						} else {
 #ifndef _WIN32
-							if (p[0] == '&') //запуск без терминала
+							if (p[0] == '&' || shift) //запуск без терминала
 							{
 								_history.Put(p);
-								p++;
+								if (p[0] == '&') p++;
 								ExecNoTerminalProcess(p);
 								break;
 							} 
@@ -2660,10 +2754,17 @@ void EditorHeadWin::DrawSym(wal::GC &gc)
 void EditorHeadWin::Paint(wal::GC &gc, const crect &paintRect)
 {
 	unsigned bgColor  = UiGetColor(uiBackground, 0, 0, 0x808080);
+	bool mode3d  = UiGetBool(ui3d, 0, 0, true);
+	
 	crect r = ClientRect();
 	gc.SetFillColor(bgColor);
 	gc.FillRect(r);
-	Draw3DButtonW2(gc, r, bgColor, true);
+	
+	if (mode3d)
+		Draw3DButtonW2(gc, r, bgColor, true);
+	else
+		DrawBorder(gc, r, ColorTone(bgColor, -100));
+	
 	gc.Set(dialogFont.ptr()); //GetFont());
 	
 	r.Dec();
@@ -2852,10 +2953,17 @@ void ViewerHeadWin::DrawPercent(wal::GC &gc)
 void ViewerHeadWin::Paint(wal::GC &gc, const crect &paintRect)
 {
 	unsigned bgColor  = UiGetColor(uiBackground, 0, 0, 0x808080);
+	bool mode3d  = UiGetBool(ui3d, 0, 0, true);
 	crect r = ClientRect();
+	
 	gc.SetFillColor(bgColor);
 	gc.FillRect(r);
-	Draw3DButtonW2(gc, r, bgColor, true);
+
+	if (mode3d)
+		Draw3DButtonW2(gc, r, bgColor, true);
+	else
+		DrawBorder(gc, r, ColorTone(bgColor, -100));
+	
 	gc.Set(dialogFont.ptr()); //GetFont());
 	
 	r.Dec();

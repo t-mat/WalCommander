@@ -50,7 +50,7 @@ types:
 	1 -left 2 - right 3 - horisontal slider
 	4 - up 5 - down   6 - vert. slider 
 */
-void SBCDrawButton(GC &gc, crect rect, int type, unsigned bg, bool pressed)
+void SBCDrawButton(GC &gc, crect rect, int type, unsigned bg, bool pressed, bool _3d)
 {
 	static unsigned short up[]={6, 0x10,0x38,0x7c,0xee,0x1c7,0x82};
 	static unsigned short down[]={6, 0x82,0x1c7,0xee,0x7c,0x38,0x10,};
@@ -58,11 +58,17 @@ void SBCDrawButton(GC &gc, crect rect, int type, unsigned bg, bool pressed)
 	static unsigned short right[]={9,0x02,0x07,0x0E,0x1c,0x38,0x1c,0x0e,0x07,0x02};
 	DrawBorder(gc,rect,ColorTone(bg,-100));
 	rect.Dec();
-	Draw3DButtonW1(gc, rect, bg, !pressed);
-	//rect.Dec();
+	
+	if (_3d) {
+		Draw3DButtonW1(gc, rect, bg, !pressed);
+	} else {
+		DrawBorder(gc,rect, bg);
+	}
+		
 	rect.Dec();
 	gc.SetFillColor(bg);
 	gc.FillRect(rect);
+	
 	int xPlus = 0;
 	int yPlus = 0;
 	if (pressed) {
@@ -111,14 +117,15 @@ ScrollBar::ScrollBar(int nId, Win *parent, bool _vertical, bool _autoHide, crect
 void ScrollBar::Paint(GC &gc, const crect &paintRect)
 {
 	crect cr = ClientRect();
-	unsigned bgColor = UiGetColor(uiBackground, 0, 0, 0xD8E9EC);/*GetColor(IC_SCROLL_BG)*/;
-	unsigned btnColor = UiGetColor(uiButtonColor, 0, 0, 0xD8E9EC); //GetColor(IC_SCROLL_BUTTON);
+	unsigned bgColor = UiGetColor(uiBackground, 0, 0, 0xD8E9EC);
+	unsigned btnColor = UiGetColor(uiButtonColor, 0, 0, 0xD8E9EC); 
+	bool mode3d  = UiGetBool(ui3d, 0, 0, true); 
 	gc.SetFillColor(bgColor);
 	gc.FillRect(cr);
-	DrawBorder(gc, cr, UiGetColor(uiColor, 0, 0, 0xD8E9EC)/*GetColor(IC_SCROLL_BORDER)*/);
-	if (!b1Rect.IsEmpty()) SBCDrawButton(gc, b1Rect, vertical? 4 : 1, btnColor, b1Pressed);
-	if (!b2Rect.IsEmpty()) SBCDrawButton(gc, b2Rect, vertical? 5 : 2, btnColor, b2Pressed);
-	if (!b3Rect.IsEmpty()) SBCDrawButton(gc, b3Rect, vertical? 6 : 3, btnColor, false);
+	DrawBorder(gc, cr, UiGetColor(uiColor, 0, 0, 0xD8E9EC));
+	if (!b1Rect.IsEmpty()) SBCDrawButton(gc, b1Rect, vertical? 4 : 1, btnColor, b1Pressed, mode3d);
+	if (!b2Rect.IsEmpty()) SBCDrawButton(gc, b2Rect, vertical? 5 : 2, btnColor, b2Pressed, mode3d);
+	if (!b3Rect.IsEmpty()) SBCDrawButton(gc, b3Rect, vertical? 6 : 3, btnColor, false, mode3d);
 }
 
 void ScrollBar::SetScrollInfo(ScrollInfo *s)
@@ -269,7 +276,7 @@ bool ScrollBar::EventMouse(cevent_mouse* pEvent)
 		{
 			traceBPoint = (vertical)? (pEvent->Point().y - b3Rect.top) : (pEvent->Point().x - b3Rect.left);
 			trace = true;
-			SetCapture();
+			SetCapture(&captureSD);
 			break;
 		} else 
 		if (!b3Rect.IsEmpty()) {
@@ -291,7 +298,7 @@ bool ScrollBar::EventMouse(cevent_mouse* pEvent)
 		}
 		if (subId !=0) 
 		{
-			SetCapture();
+			SetCapture(&captureSD);
 			SendManagedCmd(subId,0);
 			SetTimer(subId,100);
 		}
@@ -307,7 +314,7 @@ bool ScrollBar::EventMouse(cevent_mouse* pEvent)
 		{
 			b1Pressed = false ;
 			b2Pressed = false ;
-			ReleaseCapture();
+			ReleaseCapture(&captureSD);
 			DelAllTimers();
 			Invalidate();
 			trace = false;

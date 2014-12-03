@@ -209,7 +209,7 @@ static bool accmask_begin0(const unicode_t *name, const unicode_t *mask)
 	}
 }
 
-extern unsigned  UnicodeLC(unsigned ch);
+//extern unsigned  UnicodeLC(unsigned ch);
 
 static bool accmask_nocase_begin0(const unicode_t *name, const unicode_t *mask)
 {
@@ -319,7 +319,7 @@ int ShellFileDlg::UiGetClassId(){ return GetUiID("TabDialog"); }
 
 bool ShellFileDlg::Command(int id, int subId, Win *win, void *d)
 {
-	if (id == CMD_ITEM_CLICK && win == &list)
+	if (id == CMD_ITEM_DOUBLECLICK && win == &list)
 		EndModal(CMD_OK);
 	else
 	if (id == CMD_EDITLINE_INFO && subId == SCMD_EDITLINE_CHANGED && win == &line)
