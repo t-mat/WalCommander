@@ -253,6 +253,7 @@ private:
 	void Mark(bool enable);
 	void CtrlEnter();
 	void CtrlF();
+	void CtrlL();
 	void PastePanelPath( PanelWin* p, bool AddTrailingSpace );
 	void HistoryDialog();
 	void SelectDrive(PanelWin *p);

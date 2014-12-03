@@ -35,6 +35,7 @@
 #include "shell-tools.h"
 #include "dircalc.h"
 #include "ltext.h"
+#include "dlg-ctrl-l.h"
 
 #ifndef _WIN32
 #include "ux_util.h"
@@ -246,6 +247,7 @@ NCWin::NCWin()
 	_mdCommands.AddCmd(ID_HISTORY,	_LT("&History"),	"Shift-F8 (Ctrl-K)");
 	_mdCommands.AddCmd(ID_CTRL_O,	_LT("&Panel on/off"),	"Ctrl-O");
 	_mdCommands.AddCmd(ID_PANEL_EQUAL, _LT("E&qual panels"),	"Ctrl =");
+	_mdCommands.AddCmd(ID_CTRL_L, _LT("Toggle &info dialog"),	"Ctrl L");
 	_mdCommands.AddSplit();
 	_mdCommands.AddCmd(ID_SHORTCUTS, _LT("Fol&der shortcuts"),	"Ctrl D");
 
@@ -1137,6 +1139,15 @@ void NCWin::CtrlF()
 	}
 }
 
+void NCWin::CtrlL()
+{
+	if (_mode != PANEL) return;
+	if (_panel->IsVisible()) 
+	{
+		DoCtrlLDialog(this, _panel->StatVfs());
+	}
+}
+
 
 void NCWin::HistoryDialog()
 {
@@ -1775,6 +1786,10 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 			case FC(VK_GRAVE, KM_CTRL):
 				Home(_panel);
 				break;
+			
+			case FC(VK_L, KM_CTRL):
+				CtrlL();
+				break;
 			}
 		}
 
@@ -2163,6 +2178,7 @@ bool NCWin::Command(int id, int subId, Win *win, void *data)
 		
 		case ID_SEARCH_2: this->Search(); return true;
 		case ID_CTRL_O: ShowPanels(!_panelVisible); return true;
+		case ID_CTRL_L:	CtrlL(); return true;
 		case ID_HISTORY: HistoryDialog(); return true;
 		case ID_PANEL_EQUAL: PanelEqual(); return true;
 		case ID_SHORTCUTS: Shortcuts(); return true;

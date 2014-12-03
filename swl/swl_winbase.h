@@ -195,11 +195,22 @@ public:
 extern cpoint GetStaticTextExtent(GC &gc, const unicode_t *s, cfont *font);
 
 class StaticLine: public Win {
-	wal::carray<unicode_t> text;
 public:
-	StaticLine(int nId, Win *parent, const unicode_t *txt, crect *rect = 0);
+	enum ALIGN {
+		LEFT = -1,
+		CENTER = 0,
+		RIGHT = 1
+	};
+private:
+	wal::carray<unicode_t> text;
+	ALIGN align;
+	int width; //ширина в ВЫСОТАХ фонта
+public:
+	
+	StaticLine(int nId, Win *parent, const unicode_t *txt, crect *rect = 0, ALIGN al = LEFT, int w = -1);
 	virtual void Paint(GC &gc, const crect &paintRect);
-	void SetText(const unicode_t *txt){ text = wal::new_unicode_str(txt); Invalidate(); }
+	void SetText(const unicode_t *txt);
+	const unicode_t * GetText();
 	virtual int UiGetClassId();
 	virtual ~StaticLine();
 };

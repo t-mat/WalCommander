@@ -294,7 +294,10 @@ int FSSys::MkDir(FSPath &path, int mode, int *err,  FSCInfo *info)
 {
 	if (CreateDirectoryW(SysPathStr(_drive, path.GetUnicode('\\')).ptr(), 0)) return 0;
 	DWORD e = GetLastError();
-	//if (e == ERROR_ALREADY_EXISTS) return 0;
+
+	//!!!надо вернуть 0 если каталог уже существует
+	if (e == ERROR_ALREADY_EXISTS) return 0;
+
 	SetError(err, e);
 	return -1;
 }

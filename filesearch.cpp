@@ -1,3 +1,4 @@
+#include "swl.h"
 #include "filesearch.h"
 #include "string-util.h"
 #include "search-dlg.h"
@@ -371,7 +372,8 @@ public:
 	virtual ~SearchListWin();
 };
 
-extern cicon folderIcon;
+//extern cicon folderIcon;
+extern cicon *GetFolderIcon(int itemH, unsigned color_bg);
 
 void SearchListWin::DrawItem(wal::GC &gc, int n, crect rect)
 {
@@ -402,7 +404,9 @@ void SearchListWin::DrawItem(wal::GC &gc, int n, crect rect)
 			txt = itemList[n].fsNode->GetUnicodeName();
 			x = fontW*10;
 			if (itemList[n].fsNode->IsDir()) {
-				gc.DrawIcon(x, rect.top+1, &folderIcon);
+				cicon * pIcon = GetFolderIcon(rect.Height(), bg);
+				if (pIcon)
+					pIcon->DrawF(gc, x, rect.top+1, pIcon);
 			} else {
 				if (itemList[n].cs) {
 					gc.Set(GetFont());
@@ -467,12 +471,12 @@ public:
 		curFound(-1),
 		curBadDirs(-1),
 		curBadFiles(-1),
-		foundName(0, this, utf8_to_unicode( _LT("Files found:") ).ptr()), 
-		foundCount(0, this, utf8_to_unicode("AAAAAAAAAA").ptr()), 
-		badDirsName(0, this, utf8_to_unicode( _LT("Bad directories:") ).ptr()), 
-		badDirsCount(0, this, utf8_to_unicode("AAAAAAAAAA").ptr()),
-		badFilesName(0, this, utf8_to_unicode( _LT("Not opened files:") ).ptr()), 
-		badFilesCount(0, this, utf8_to_unicode("AAAAAAAAAA").ptr())
+		foundName(uiVariable, this, utf8_to_unicode( _LT("Files found:") ).ptr()), 
+		foundCount(uiValue, this, 0, 0, StaticLine::RIGHT, 10), //utf8_to_unicode("AAAAAAAAAA").ptr()), 
+		badDirsName(uiVariable, this, utf8_to_unicode( _LT("Bad directories:") ).ptr()), 
+		badDirsCount(uiValue, this, 0, 0, StaticLine::RIGHT, 10), //utf8_to_unicode("AAAAAAAAAA").ptr()),
+		badFilesName(uiVariable, this, utf8_to_unicode( _LT("Not opened files:") ).ptr()), 
+		badFilesCount(uiValue, this, 0, 0, StaticLine::RIGHT, 10) //utf8_to_unicode("AAAAAAAAAA").ptr())
 	{
 		listWin.Show(); listWin.Enable();
 		cPathWin.Show(); cPathWin.Enable();

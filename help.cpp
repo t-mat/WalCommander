@@ -12,7 +12,9 @@
 
 using namespace wal;
 
-static char verString[] = "Wal Commander v 0.16.3";
+static char verString[] = "Wal Commander v 0.16.5";
+
+#define MIN_WIDTH (500)
 
 struct HelpStyle {
 	cfont *font;
@@ -1279,16 +1281,23 @@ HelpWin::HelpWin(const char *theme, Win *parent, crect *rect)
 		wal::GC gc(this);
 		HelpGC hgc(&gc);
 		data->Init(hgc);
-/*
-		{ //определить максимально нужную ширину
-data->Prepare(100000);
-LSize ls = GetLSize();
-ls.x.maximal = data->_max;
-SetLSize(ls);
+
+		{ 
+			//определить максимально нужную ширину
+			data->Prepare(10000);
+			LSize ls = GetLSize();
+			ls.x.maximal = data->_max + vScroll.GetLSize().x.maximal + 4 + 30;
+			if (ls.x.maximal < MIN_WIDTH) ls.x.maximal = MIN_WIDTH;
+
+			//ищем максимальную высоту при минимальной ширине
+			data->Prepare(MIN_WIDTH-4-hScroll.GetLSize().y.maximal);
+			ls.y.maximal = data->_size.y + 4 + hScroll.GetLSize().y.maximal;
+			
+			SetLSize(ls);
 		}
-*/
-		data->Prepare(600);
-		layout.ColSet(1, -1, data->_size.x, data->_size.x);
+
+//		data->Prepare(600);
+//		layout.ColSet(1, -1, data->_size.x, data->_size.x);
 	}
 	this->RecalcLayouts();
 }
@@ -1399,8 +1408,14 @@ void HelpWin::Paint(wal::GC &gc, const crect &paintRect)
 
 void HelpWin::EventSize(cevent_size *pEvent)
 {
+	this->RecalcLayouts();
+
 	if (data.ptr()) {
-		data->Prepare(helpRect.Width()<500 ? 500 : helpRect.Width());
+		data->Prepare( 
+			(helpRect.Width() < MIN_WIDTH ? MIN_WIDTH : helpRect.Width()) 
+			- 4 //толщина рамки *2
+			- vScroll.GetLSize().x.maximal 
+			);
 		dataWidth = data->_size.x;
 		dataHeight = data->_size.y;
 	} else {
@@ -1538,8 +1553,8 @@ public:
 		if (!createDialogAsChild) 
 		{	
 			LSize ls = helpWin.GetLSize();
-			if (ls.x.minimal<500) ls.x.minimal=500;
-			if (ls.y.minimal<300) ls.y.minimal=300;
+			if (ls.x.minimal < MIN_WIDTH) ls.x.minimal = MIN_WIDTH;
+			if (ls.y.minimal < 300) ls.y.minimal = 300;
 			helpWin.SetLSize(ls);
 			SetPosition();
 		} 

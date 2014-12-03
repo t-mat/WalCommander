@@ -171,44 +171,67 @@ cpoint GetStaticTextExtent(GC &gc, const unicode_t *s, cfont *font)
 int uiClassStatic = GetUiID("Static");
 int StaticLine::UiGetClassId(){	return uiClassStatic;}
 
-StaticLine::StaticLine(int nId, Win *parent, const unicode_t *txt, crect *rect)
-: Win(Win::WT_CHILD, 0, parent, rect, nId), text(new_unicode_str(txt))
+StaticLine::StaticLine(int nId, Win *parent, const unicode_t *txt, crect *rect, ALIGN al, int w)
+:	Win(Win::WT_CHILD, 0, parent, rect, nId), 
+	text (txt ? new_unicode_str(txt) : 0), 
+	align(al),
+	width(w)
 {
 	if (!rect) 
 	{
 		GC gc(this);
-		SetLSize(LSize(GetStaticTextExtent(gc,txt,GetFont())));
+		if (w >= 0)
+		{
+			static unicode_t t[]={'A', 'B', 'C', 0};
+			cpoint p = GetStaticTextExtent(gc,t,GetFont());
+			p.x = p.y * w;
+			SetLSize(LSize(p));
+		} else if (txt)
+			SetLSize(LSize(GetStaticTextExtent(gc,txt,GetFont())));
+		else
+			SetLSize(LSize(cpoint(0, 0)));
 	}
 }
 
+void StaticLine::SetText(const unicode_t *txt)
+{
+	text = txt ? wal::new_unicode_str(txt) : 0; 
+	if (IsVisible())
+		Invalidate(); 
+}
+
+const unicode_t * StaticLine::GetText()
+{
+	static unicode_t emptyStr = 0;
+	return text.ptr() ? text.ptr() : &emptyStr;
+}
 
 void StaticLine::Paint(GC &gc, const crect &paintRect)
 {
 	crect rect = ClientRect();
-	gc.SetFillColor(UiGetColor(uiBackground, 0,0, 0xFFFFFF)/*GetColor(0)*/);
-	gc.FillRect(rect); //CCC
-	gc.SetTextColor(UiGetColor(uiColor, 0,0, 0)/*GetColor(IsEnabled() ? IC_TEXT : IC_GRAY_TEXT)*/); //CCC
+	gc.SetFillColor(UiGetColor(uiBackground, 0,0, 0xFFFFFF));
+	gc.FillRect(rect); 
+	if (!text.ptr() || !text[0]) return;
+
+	gc.SetTextColor(UiGetColor(uiColor, 0,0, 0));
 	gc.Set(GetFont());
-	DrawStaticText(gc,0,0,text.ptr());
+
+	if (align >= 0)
+	{
+		cpoint size = gc.GetTextExtents(text.ptr());
+		if (align) //right	
+			DrawStaticText(gc, rect.right - size.x, 0,text.ptr());
+		else //center
+			DrawStaticText(gc, (rect.Width() - size.x) / 2, 0,text.ptr());
+	} else
+		DrawStaticText(gc,0,0,text.ptr());
 }
 
 
 StaticLine::~StaticLine(){}
 
 
-//////////////////////////////////  HKStaticLine
-/*class HKStaticLine: public Win {
-	wal::carray<unicode_t> text;
-	Win *win;
-public:
-	HKStaticLine(int nId, Win *parent, const unicode_t *txt, crect *rect = 0);
-	void SetControlWin(Win *w);
-	virtual bool EventKeyPost(Win *focusWin, cevent_key* pEvent);
-	virtual int UiGetClassId();
-	virtual void Paint(GC &gc, const crect &paintRect);
-	virtual ~HKStaticLine();
-};*/
-
+/////////////////////////////////// HKStaticLine
 
 int HKStaticLine::UiGetClassId(){	return uiClassStatic;}
 

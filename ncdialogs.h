@@ -38,8 +38,6 @@ public:
 
 class NCDialog: public OperThreadWin {
 	NCShadowWin _shadow;
-/*	unsigned _fcolor;
-	unsigned _bcolor;*/
 
 	StaticLine _header;
 	
@@ -67,7 +65,6 @@ public:
 	void AddLayout(Layout *l){ _lo.AddLayout(l,4,4); }
 	void SetEnterCmd(int cmd){ enterCmd = cmd; }
 	virtual void Paint(wal::GC &gc, const crect &paintRect);
-//	virtual unsigned GetChildColor(Win *w, int id);
 	virtual bool EventShow(bool show);
 	virtual bool EventKey(cevent_key* pEvent);
 	virtual bool EventChildKey(Win* child, cevent_key* pEvent);

@@ -150,8 +150,8 @@ static carray<unicode_t> ScanedDirString(const unicode_t *dirName)
 	return carray_cat<unicode_t>(utf8_to_unicode( _LT("Folder:") ).ptr(), utf8_to_unicode(" \"").ptr(), list.ptr(), utf8_to_unicode("\"").ptr());
 }
 
-int uiVariable = GetUiID("variable");
-int uiValue = GetUiID("value");
+
+#define VALUE_WIDTH 12
 
 class DirCalcThreadWin: public NCDialog {
 	OperDirCalcData *pData;
@@ -184,13 +184,17 @@ public:
 		curBadDirs(-1),
 		dirString(0, this, ScanedDirString(dirName).ptr()), 
 		fileCountName(uiVariable, this, utf8_to_unicode( _LT("Files:") ).ptr()), 
-		fileCountNum(uiValue, this, utf8_to_unicode("AAAAAAAAAA").ptr()), 
+		fileCountNum(uiValue, this, 0, //utf8_to_unicode("AAAAAAAAAAAAAAAAAA").ptr(),
+			0, StaticLine::RIGHT, VALUE_WIDTH), 
 		folderCountName(uiVariable, this, utf8_to_unicode(_LT("Folders:") ).ptr()), 
-		folderCountNum(uiValue, this, utf8_to_unicode("AAAAAAAAAA").ptr()), 
+		folderCountNum(uiValue, this, 0, //utf8_to_unicode("AAAAAAAAAAAAAAAAAA").ptr(), 
+			0, StaticLine::RIGHT, VALUE_WIDTH), 
 		sumSizeName(uiVariable, this, utf8_to_unicode( _LT("Files size:") ).ptr()), 
-		sumSizeNum(uiValue, this, utf8_to_unicode("AAAAAAAAAAAAAAAAAAAA").ptr()),
+		sumSizeNum(uiValue, this, 0, //utf8_to_unicode("AAAAAAAAAAAAAAAAAA").ptr(),
+			0, StaticLine::RIGHT, VALUE_WIDTH),
 		badDirsName(uiVariable, this, utf8_to_unicode( _LT("Not readable folders:") ).ptr()), 
-		badDirsNum(uiValue, this, utf8_to_unicode("AAAAAAAAAA").ptr())
+		badDirsNum(uiValue, this, 0, //utf8_to_unicode("AAAAAAAAAAAAAAAAAA").ptr(), 
+			0, StaticLine::RIGHT, VALUE_WIDTH)
 	{
 		lo.AddWin(&dirString, 0, 0, 0, 3);
 		lo.AddWin(&cPathWin, 9, 0, 9, 3);
@@ -237,63 +241,6 @@ public:
 	virtual ~DirCalcThreadWin();
 };
 
-/*
-static unicode_t* PrintableSizeStr(unicode_t buf[64], int64 size)
-{
-	unicode_t str[10];
-	str[0] = 0;
-	
-	seek_t num = size;	
-	
-	if (num >= seek_t(10l)*1024*1024*1024)
-	{
-		num /= seek_t(1024l)*1024*1024;
-		str[0] =' ';
-		str[1] ='G';
-		str[2] ='b';
-		str[3] =0;
-	} else
-	if (num >= 10l*1024*1024)
-	{
-		num /= 1024*1024;
-		str[0] =' ';
-		str[1] ='M';
-		str[2] ='b';
-		str[3] = 0;
-	} else 
-	if (num >= 1024*1024)
-	{
-		num /= 1024;
-		str[0] =' ';
-		str[1] ='K';
-		str[2] ='b';
-		str[3] = 0;
-	} else {
-		str[0] =' ';
-		str[1] ='B';
-		str[2] ='y';
-		str[3] ='t';
-		str[4] ='e';
-		str[5] ='s';
-		str[6] = 0;
-
-	}
-
-	char dig[64];
-	unsigned_to_char<seek_t>(num, dig);
-	
-	unicode_t *us = buf;
-	for (char *s = dig; *s; s++)
-		*(us++) = *s;
-	
-	for (unicode_t *t = str; *t; t++)
-		*(us++) = *t;
-		
-	*us = 0;
-	
-	return buf;
-}
-*/
 
 static unicode_t* PrintableSizeStr(unicode_t buf[64], int64 size)
 {

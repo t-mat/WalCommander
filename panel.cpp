@@ -11,14 +11,10 @@
 #include "ext-app.h"
 #include "color-style.h"
 #include "string-util.h"
-
-#include "icons/folder3.xpm"
-#include "icons/folder.xpm"
-//#include "icons/executable.xpm"
-#include "icons/executable1.xpm"
+#include "icons/folder.h"
+#include "icons/executable.h"
 #include "icons/monitor.xpm"
 #include "icons/workgroup.xpm"
-#include "icons/run.xpm"
 
 #include "vfs-smb.h"
 #include "ltext.h"
@@ -119,16 +115,6 @@ bool PanelSearchWin::EventMouse(cevent_mouse* pEvent)
 bool PanelSearchWin::EventChildKey(Win* child, cevent_key* pEvent)
 {
 	if (pEvent->Type() != EV_KEYDOWN) return false;
-
-//Invalidate();
-//OnTop();
-/*{
-WINDOWINFO inf;
-inf.cbSize = sizeof(inf);
-GetWindowInfo( GetID(), &inf);
-if ( (inf.dwStyle & WS_CLIPCHILDREN) && (inf.dwStyle & WS_CLIPSIBLINGS))
-	printf("");
-}*/
 
 	bool ctrl = ( pEvent->Mod() & KM_CTRL ) != 0;
 
@@ -654,16 +640,156 @@ static const int userWidth = 10;
 static const int groupWidth = 10;
 static const int accessWidth= 13;
 
+int GetPanelIconSize(int itemH)
+{
+	itemH = (itemH*14)/16;
+	return itemH < 8 ? 8 : itemH;
+}
 
-#define PANEL_ICON_SIZE 16
+cicon *GetFolderIcon(int iconSize, unsigned color_bg)
+{
+	static cptr<cicon> icon;
+	static cptr<cicon> loIcon;
 
-cicon folderIcon(xpm16x16_Folder, PANEL_ICON_SIZE, PANEL_ICON_SIZE);
-cicon folderIconHi(xpm16x16_Folder_HI, PANEL_ICON_SIZE, PANEL_ICON_SIZE);
+	if (iconSize < 8) iconSize = 8;
 
-static cicon executableIcon(xpm16x16_Executable, PANEL_ICON_SIZE, PANEL_ICON_SIZE);
-static cicon serverIcon(xpm16x16_Monitor, PANEL_ICON_SIZE, PANEL_ICON_SIZE);
-static cicon workgroupIcon(xpm16x16_Workgroup, PANEL_ICON_SIZE, PANEL_ICON_SIZE);
-static cicon runIcon(xpm16x16_Run, PANEL_ICON_SIZE, PANEL_ICON_SIZE);
+	bool loColor = ( ((color_bg>>16)&0xFF)+((color_bg>>8)&0xFF)+(color_bg&0xFF)) < 0x80*3;
+
+	if (icon.ptr() && iconSize != icon->Width()) 
+		icon = 0;
+
+	if (!icon.ptr()) 
+	{
+		Image32 image;
+
+		void *icoImage = (void*)&gimp_image_folder16;
+
+//		if (iconSize > 48) icoImage = (void*)&gimp_image_folder64;
+//			else 
+				if (iconSize > 32) icoImage = (void*)&gimp_image_folder48;
+				else 
+					if (iconSize > 20) icoImage = (void*)&gimp_image_folder32;
+
+		image.copy_gimp_c_rgba(icoImage);
+
+		icon = new cicon();
+		icon->Load(image, iconSize, iconSize);
+
+		int n = image.width()*image.height();
+		unsigned32 *p = image.line(0);
+		for (; n>0; n--, p++)
+		{
+			unsigned32 c = *p;
+			*p = (c & 0xFF000000) + 
+				( (c & 0xFF0000)*75/100 & 0xFF0000) +
+				( (c & 0x00FF00)*75/100 & 0x00FF00) +
+				( (c & 0x0000FF)*75/100 & 0x0000FF);
+		}
+		loIcon = new cicon();
+		loIcon->Load(image, iconSize, iconSize);
+	}
+
+	return loColor ? loIcon.ptr() : icon.ptr();
+}
+
+cicon *GetExecIcon(int iconSize, unsigned color_bg)
+{
+	static cptr<cicon> icon;
+	static cptr<cicon> loIcon;
+
+	iconSize = iconSize*200/256;
+
+	if (iconSize < 8) iconSize = 8;
+
+	bool loColor = ( ((color_bg>>16)&0xFF)+((color_bg>>8)&0xFF)+(color_bg&0xFF)) < 0x80*3;
+
+	if (icon.ptr() && iconSize != icon->Width()) 
+		icon = 0;
+
+	if (!icon.ptr()) 
+	{
+		Image32 image;
+
+		void *icoImage = (void*)&gimp_image_exec16;
+
+//		if (iconSize > 48) icoImage = (void*)&gimp_image_exec64;
+//			else 
+				if (iconSize > 32) icoImage = (void*)&gimp_image_exec48;
+				else 
+					if (iconSize > 28) icoImage = (void*)&gimp_image_exec32;
+					else 
+						if (iconSize > 20) icoImage = (void*)&gimp_image_exec22;
+
+		image.copy_gimp_c_rgba(icoImage);
+
+		icon = new cicon();
+		icon->Load(image, iconSize, iconSize);
+
+		int n = image.width()*image.height();
+		unsigned32 *p = image.line(0);
+		for (; n>0; n--, p++)
+		{
+			unsigned32 c = *p;
+			*p = (c & 0xFF000000) + 
+				( (c & 0xFF0000)*75/100 & 0xFF0000) +
+				( (c & 0x00FF00)*75/100 & 0x00FF00) +
+				( (c & 0x0000FF)*75/100 & 0x0000FF);
+		}
+		loIcon = new cicon();
+		loIcon->Load(image, iconSize, iconSize);
+
+	}
+
+	return loColor ? loIcon.ptr() : icon.ptr();
+	//return icon.ptr();
+}
+
+
+cicon *GetServerIcon(int iconSize, unsigned color_bg)
+{
+	static cptr<cicon> icon;
+
+	if (iconSize < 8) iconSize = 8;
+
+	if (icon.ptr() && iconSize != icon->Width()) 
+		icon = 0;
+
+	if (!icon.ptr()) 
+	{
+		XPMImage xpm;
+		if (xpm.Load(xpm16x16_Monitor, 1024)) {
+			Image32 image;
+			image.copy(xpm);
+			icon = new cicon();
+			icon->Load(image, iconSize, iconSize);
+		}
+	}
+
+	return icon.ptr();
+}
+
+cicon *GetWorkgroupIcon(int iconSize, unsigned color_bg)
+{
+	static cptr<cicon> icon;
+
+	if (iconSize < 8) iconSize = 8;
+
+	if (icon.ptr() && iconSize != icon->Width()) 
+		icon = 0;
+
+	if (!icon.ptr()) 
+	{
+		XPMImage xpm;
+		if (xpm.Load(xpm16x16_Workgroup, 1024)) {
+			Image32 image;
+			image.copy(xpm);
+			icon = new cicon();
+			icon->Load(image, iconSize, iconSize);
+		}
+	}
+
+	return icon.ptr();
+}
 
 bool panelIconsEnabled = true;
 
@@ -689,11 +815,6 @@ void PanelWin::DrawItem(wal::GC &gc,  int n)
 	bool isBad = p && p->IsBad();
 	bool isSelected = p && p->IsSelected();
 	bool isHidden = p && p->IsHidden();	
-	
-	/*
-	PanelItemColors color;
-	panelColors->itemF(&color, _inOperState, active, isSelected, isBad, isHidden, isDir, isExe);
-	*/
 	
 	UiCondList ucl;
 	if (isDir) ucl.Set(uiDir, true);
@@ -734,18 +855,30 @@ void PanelWin::DrawItem(wal::GC &gc,  int n)
 		if (wcmConfig.panelShowIcons) {
 			switch (p->extType) {
 			case FSNode::SERVER:
-				serverIcon.DrawF(gc,x,y);
+				{
+					cicon *pIcon = GetServerIcon(GetPanelIconSize(this->_itemHeight), color_bg);
+					if (pIcon) 
+						pIcon->DrawF(gc, x, y);
+				}
 				break;
 				
 			case FSNode::WORKGROUP:
-				workgroupIcon.DrawF(gc,x,y);
+				{
+					cicon *pIcon = GetWorkgroupIcon(GetPanelIconSize(this->_itemHeight), color_bg);
+					if (pIcon) 
+						pIcon->DrawF(gc, x, y);
+				}
 				break;
 				
 			default: 
-				if (( ((color_bg>>16)&0xFF)+((color_bg>>8)&0xFF)+(color_bg&0xFF)) < 0x80*3)
-					folderIcon.DrawF(gc,x,y);
-				else
-					folderIconHi.DrawF(gc,x,y);
+				{
+					cicon *pIcon = GetFolderIcon(GetPanelIconSize(this->_itemHeight), color_bg);
+					if (pIcon) 
+					{
+						int yPlus = (_itemHeight - pIcon->Height())/2;
+						pIcon->DrawF(gc, x, y + yPlus);
+					}
+				}
 			};
 		} else {
 			gc.TextOutF(x, y, dirPrefix);
@@ -755,7 +888,13 @@ void PanelWin::DrawItem(wal::GC &gc,  int n)
 	if (isExe)
 	{
 		if (wcmConfig.panelShowIcons) {
-			executableIcon.DrawF(gc,x,y);
+			cicon *pIcon = GetExecIcon(GetPanelIconSize(this->_itemHeight), color_bg);
+			if (pIcon) {
+				int yPlus = (_itemHeight - pIcon->Height())/2;
+				pIcon->DrawF(gc, x, y + yPlus);
+			}
+
+			//executableIcon.DrawF(gc,x,y);
 		} else {
 			gc.TextOutF(x, y, exePrefix);
 			//x += exePrefixW;
@@ -764,7 +903,7 @@ void PanelWin::DrawItem(wal::GC &gc,  int n)
 	}
 	
 	if (wcmConfig.panelShowIcons) {
-		x += PANEL_ICON_SIZE;
+		x += GetPanelIconSize(rect.Height());
 	} else {
 		x += dirPrefixW;
 	}
@@ -1022,7 +1161,7 @@ static char* GetSmallPrintableSizeStr(char buf[64], int64 size)
 		mod = (num % KIL)/(KIL/10);
 		num /= KIL;
 		str[0] =' ';
-		str[1] ='M';
+		str[1] ='K';
 		str[2] =0;
 	} else mod = -1;
 	

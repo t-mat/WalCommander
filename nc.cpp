@@ -98,7 +98,9 @@ int main(int argc, char **argv)
 {	
 	try {
 		
-		#ifndef _WIN32
+		#ifdef _WIN32
+			
+		#else
 			for (int i = 1; i<argc; i++)
 			{
 				if (argv[i][0]=='-' && argv[i][1]=='-' && !strcmp(argv[i]+2, "dlg"))
@@ -137,9 +139,7 @@ int main(int argc, char **argv)
 				InitLocale(UNIX_CONFIG_DIR_PATH "/lang", langId);
 #endif
 
-			
-//			SetEditorColorStyle(wcmConfig.editColorMode);
-//			SetViewerColorStyle(wcmConfig.viewColorMode);
+		
 		} catch (cexception *ex) {
 			fprintf(stderr, "%s\n", ex->message());
 			ex->destroy();

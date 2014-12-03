@@ -23,6 +23,7 @@ const char *helpData_main =
 "Set right panel DRIVE	@c /r {<sbold>Shift-F2} @c (Alt-F2) @n" "<v2>@n"
 "Equal panels		@c /r {<sbold>Ctrl-=} @c@n" "<v2>@n"
 "Folder shortcuts	@c /r {<sbold>Ctrl-D} @c@n" "<v2>@n"
+"Toggle info dialog	@c /r {<sbold>Ctrl-L} @c@n" "<v2>@n"
 "@e/n"
 "<v10>/n"
 "/c{<shead>Panel/n}"

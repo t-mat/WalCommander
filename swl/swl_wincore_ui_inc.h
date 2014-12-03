@@ -697,6 +697,10 @@ int uiParentFocus = GetUiID("parent-focus");
 int uiItem = GetUiID("item");
 int uiClassWin = GetUiID("Win");
 
+int uiVariable = GetUiID("variable");
+int uiValue = GetUiID("value");
+
+
 unsigned Win::UiGetColor(int id, int itemId, UiCondList *cl, unsigned def)
 {
 	if (!globalUiRules.ptr()) return def;

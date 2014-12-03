@@ -185,6 +185,8 @@ public:
 	FSPath& GetPath(){ return _place.GetPath(); }
 	FS* GetFS(){ return _place.GetFS(); }
 	FSPtr GetFSPtr(){ return _place.GetFSPtr(); }
+
+	FSStatVfs StatVfs(){ return _vst; }
 	
 	FSString UriOfDir();
 	FSString UriOfCurrent();

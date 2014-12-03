@@ -94,21 +94,21 @@ NCDialog::NCDialog(bool asChild, int nId, NCDialogParent *parent, const unicode_
 	_lo.LineSet(7, 5);
 	_lo.LineSet(8, 2);
 
-	_lo.ColSet(4, 16, 100000);
-	_lo.LineSet(4, 16, 100000);
+//	_lo.ColSet(4, 16, 100000);
+//	_lo.LineSet(4, 16, 100000);
 
 	_lo.AddRect(&_borderRect, 0, 0, 8, 8);
 	_lo.AddRect(&_frameRect, 2, 2, 6, 6);
 
-	_headerLo.ColSet(0, 1, 1000);
-	_headerLo.ColSet(2, 1, 1000);
+//	_headerLo.ColSet(0, 1, 1000);
+//	_headerLo.ColSet(2, 1, 1000);
 	_headerLo.LineSet(0, 2);
 	_headerLo.LineSet(2, 2);
 	_headerLo.AddWin(&_header, 1, 1);
-	_lo.AddLayout(&_headerLo, 1, 4); 
+	_lo.AddLayout(&_headerLo, 1, 4, 1, 4, Layout::CENTER); 
 
-	_buttonLo.ColSet(0, 10, 1000);
-	_buttonLo.ColSet(15, 10, 1000);
+//	_buttonLo.ColSet(0, 10, 1000);
+//	_buttonLo.ColSet(15, 10, 1000);
 	_buttonLo.LineSet(0, 2);
 	_buttonLo.LineSet(2, 2);
 	
@@ -116,7 +116,7 @@ NCDialog::NCDialog(bool asChild, int nId, NCDialogParent *parent, const unicode_
 	_parentLo.ColSet(2,20,1000);
 	_parentLo.LineSet(0,20,1000);
 	_parentLo.LineSet(2,20,1000);
-	_parentLo.AddWin(this,1,1);
+	_parentLo.AddWin(this,1,1,1,1, Layout::CENTER);
 	
 	_parentLo.SetLineGrowth(0);
 	_parentLo.SetLineGrowth(2);
@@ -161,7 +161,7 @@ NCDialog::NCDialog(bool asChild, int nId, NCDialogParent *parent, const unicode_
 
 	}
 
-	_lo.AddLayout(&_buttonLo,5,4); 
+	_lo.AddLayout(&_buttonLo, 5, 4, 5, 4, Layout::CENTER); 
 
 	_header.Enable();
 	_header.Show();

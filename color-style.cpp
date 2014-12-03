@@ -218,7 +218,7 @@ static char uiWhiteWcmRules[] =
 "Panel@item:hidden:selected-panel:current-item { color: 0x808080 }"
 "Panel@item:bad { color: 0xA0 }"
 "Panel@item:selected, Panel@item:selected:selected-panel:current-item { color: 0x0000FF }"
-"Panel@item:selected-panel:current-item { background: 0x800000; color:0xFFFFFF; mode3d:1; }"
+"Panel@item:selected-panel:current-item { background: 0x800000; color:0xFFFFFF; }" // mode3d:1; }"
 "Panel@item:selected-panel:current-item:oper-state { background: 0xFF }"
 "Panel ScrollBar, Viewer ScrollBar, Editor ScrollBar {  background: 0xE0E0E0; button-color: 0xFFD080 }"
 "Panel { border-color1: 0x800000; border-color2: 0xD8E9EC; border-color3: 0xD8E9EC; border-color4: 0xD8E9EC;"

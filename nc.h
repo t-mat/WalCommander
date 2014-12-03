@@ -104,6 +104,7 @@ enum CommandIDs {
 	ID_CONFIG_SAVE,
 	
 	ID_CTRL_O, //panel on/off
+	ID_CTRL_L, //info dialog
 	ID_HISTORY,
 	ID_PANEL_EQUAL,
 	ID_SEARCH_2,

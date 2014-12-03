@@ -13,7 +13,8 @@ HS = swl/swl.h swl/swl_internal.h swl/swl_layout.h swl/swl_winbase.h swl/swl_win
 HN = libconf.h nc.h ncwin.h panel.h ncdialogs.h  terminal.h termwin.h ncedit.h nchistory.h shell.h \
  operthread.h operwin.h vfs.h vfspath.h vfs-smb.h vfs-uri.h fileopers.h mfile.h eloadsave.h smblogon.h ext-app.h bfile.h \
  wcm-config.h panel_list.h tcp_sock.h vfs-ftp.h ftplogon.h charsetdlg.h vfs-sftp.h sftpdlg.h color-style.h filesearch.h help.h ux_util.h \
- strconfig.h shortcuts.h fontdlg.h ncfonts.h shl.h toolbar.h ncview.h search-dlg.h search-tools.h shell-tools.h t-emulator.h dircalc.h ltext.h
+ strconfig.h shortcuts.h fontdlg.h ncfonts.h shl.h toolbar.h ncview.h search-dlg.h search-tools.h shell-tools.h t-emulator.h dircalc.h ltext.h \
+ dlg-ctrl-l.h
 
 OBJS =  wal_tmpls.o \
 	wal.o\
@@ -77,7 +78,8 @@ OBJS =  wal_tmpls.o \
 	shell-tools.o \
 	t-emulator.o \
 	dircalc.o \
-	ltext.o
+	ltext.o \
+	dlg-ctrl-l.o
 
 GC=  gcc
 
@@ -90,6 +92,9 @@ libconf.h: libtester/libconf.create
 
 dircalc.o: $(HW) $(HS) $(HN) dircalc.cpp 
 	$(CC) -c $(CFLAGS) dircalc.cpp 
+	
+dlg-ctrl-l.o: $(HW) $(HS) $(HN) dlg-ctrl-l.cpp 
+	$(CC) -c $(CFLAGS) dlg-ctrl-l.cpp 
 	
 ncvfs.o: $(HW) $(HS) $(HN) ncvfs.cpp 
 	$(CC) -c $(CFLAGS) ncvfs.cpp 

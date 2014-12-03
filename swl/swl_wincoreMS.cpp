@@ -1346,8 +1346,6 @@ void Win32CompatibleBitmap::Put(wal::GC &gc, int src_x, int src_y, int dest_x, i
 						if (!r.IsEmpty()) {
 							BitBlt(gc.W32Handle(),dest_x + r.left, dest_y + r.top, r.Width(), r.Height(), dc, r.left, r.top,
 								SRCCOPY);
-						//	XPutImage(display, gc.GetXDrawable(), gc.XHandle(), &im, r.left, r.top, 
-						//	dest_x + r.left, dest_y + r.top, r.Width(), r.Height());
 						}
 						r.Set(x1, y, x, y+1);
 					}
@@ -1357,28 +1355,40 @@ void Win32CompatibleBitmap::Put(wal::GC &gc, int src_x, int src_y, int dest_x, i
 		if (!r.IsEmpty()) {
 			BitBlt(gc.W32Handle(),dest_x + r.left, dest_y + r.top, r.Width(), r.Height(), dc, r.left, r.top,
 								SRCCOPY);
-			//XPutImage(display, gc.GetXDrawable(), gc.XHandle(), &im, r.left, r.top, 
-			//	dest_x + r.left, dest_y + r.top, r.Width(), r.Height());
 		}
 
 		
 	} else {
 		BitBlt(gc.W32Handle(),dest_x, dest_y, w, h, dc, src_x, src_y,
 								SRCCOPY);
-		//XPutImage(display, gc.GetXDrawable(), gc.XHandle(), &im, src_x, src_y, dest_x, dest_y, w, h);
 	}
 
 	::SelectObject(dc, old);
 	DeleteDC(dc);
 }
 
+//////////////////////////////////////// IconData
+
+cptr<IconData::Node> IconData::CreateNode(Image32 &image)
+{
+	return  new Node(image);
+}
+
+void IconData::DrawNode(wal::GC &gc, Node *node, int x, int y)
+{
+	if (!node) return;
+	node->Put(gc, 0, 0, x, y, node->Width(), node->Height());
+}
+
 
 //////////////////////////////////////// cicon
-extern void MakeDisabledImage32(Image32 *dest, const Image32 &src);
+//extern void MakeDisabledImage32(Image32 *dest, const Image32 &src);
 
+/*
 void cicon::Draw(wal::GC &gc, int x, int y, bool enabled)
 {
 	if (!data) return;
+
 	if (enabled) 
 	{
 		if (!data->normal.ptr())
@@ -1401,7 +1411,7 @@ void cicon::DrawF(wal::GC &gc, int x, int y, bool enabled)
 	//...
 Draw(gc,x,y,enabled);
 }
-
+*/
 
 }; //namespace wal
 #endif

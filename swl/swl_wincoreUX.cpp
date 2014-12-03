@@ -2615,13 +2615,6 @@ void cfont::drop()
 extern void MakeDisabledImage32(Image32 *dest, const Image32 &src);
 
 /*
-struct Node {
-	SCImage image;
-	carray<char> mash;
-	unigned bgColor;
-};
-*/
-
 static cptr<IconData::Node> CreateIconDataNode(Image32 &_image, unsigned bgColor, bool enabled)
 {
 	cptr<IconData::Node> node = new IconData::Node;
@@ -2685,6 +2678,51 @@ static cptr<IconData::Node> CreateIconDataNode(Image32 &_image, unsigned bgColor
 	xim.Put(gc, 0, 0, 0, 0, w, h);
 	return node;
 }
+*/
+
+cptr<IconData::Node> IconData::CreateNode(Image32 &image)
+{
+	cptr<IconData::Node> node = new IconData::Node;
+	
+	int w = image.width();
+	int h = image.height();
+	
+	if (w <= 0 || h <= 0) return node;
+	
+	unsigned32 *p = image.line(0);
+	int count = w * h;
+
+	bool masked = false;
+	
+	for (;count>0; count--, p++)
+		if (*p >= 0x80000000)
+		{
+			masked = true;
+			break;
+		}
+	
+	if (masked)
+	{
+		unsigned32 *p = image.line(0);
+		int count = w*h;
+		
+		node->mask.alloc(count);
+		char *m = node->mask.ptr();
+
+		for (;count>0; count--, p++, m++) {
+			*m = (*p >= 0x80000000) ? 0 :1;
+		}
+
+	}
+	
+	IntXImage xim(image);
+	node->image.Create(w,h);
+	wal::GC gc(&node->image);
+	xim.Put(gc, 0, 0, 0, 0, w, h);
+	return node;
+}
+
+
 
 static void PutIconDataNode(wal::GC &gc, SCImage *im, int x, int y)
 {
@@ -2739,7 +2777,14 @@ static void PutIconDataNode(wal::GC &gc, SCImage *im, char *mask, int dest_x, in
 		XCopyArea(display, im->GetXDrawable(), gc.GetXDrawable(), gc.XHandle(), r.left, r.top, r.Width(), r.Height(),  dest_x + r.left, dest_y + r.top);
 }
 
+void IconData::DrawNode(wal::GC &gc, IconData::Node *node, int x, int y)
+{
+	if (node)
+		PutIconDataNode(gc, &(node->image), node->mask.ptr(), x, y);
+}
 
+
+/*
 void cicon::Draw(wal::GC &gc, int x, int y, bool enabled)
 {
 	if (!data) return;
@@ -2765,7 +2810,7 @@ void cicon::DrawF(wal::GC &gc, int x, int y, bool enabled)
 
 	PutIconDataNode(gc, &(pNode[0]->image), x, y);
 }
-
+*/
 
 ////////////////////////////////////// IntXImage
 

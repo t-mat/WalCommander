@@ -1025,6 +1025,64 @@ void Image32::copy(const XPMImage &xpm)
 	}
 }
 
+struct GimpC {
+  unsigned int 	 width;
+  unsigned int 	 height;
+  unsigned int 	 bytes_per_pixel; /* 2:RGB16, 3:RGB, 4:RGBA */ 
+  unsigned char	 pixel_data[];
+};
+
+void Image32::copy_gimp_c_rgba(void *gimp_c)
+{
+	GimpC *g = (GimpC*) gimp_c;
+	clear();
+
+	if (!g || g->bytes_per_pixel != 4) return;
+
+	int w = g->width;
+	int h = g->height;
+
+	if (w <= 0 || h <= 0) return;
+
+	alloc(w, h);
+	
+	int n = w*h;
+	unsigned char *s = g->pixel_data;
+	unsigned32 *p = _data.ptr();
+
+	for (; n > 0; s+=4, n--, p++)
+	{
+		//0123
+		//RGBA
+		*p = (unsigned(255-s[3])<<24) + (unsigned(s[2])<<16) + (unsigned(s[1])<<8) + s[0];
+		//*p = (unsigned(255-s[0])<<24) + (unsigned(s[1])<<16) + (unsigned(s[2])<<8) + s[3];
+	}
+}
+
+void Image32::set_background(unsigned bgr) 
+{
+	if (!_data.ptr()) return;
+	int n = _width*_height;
+	unsigned32 *p = _data.ptr();
+
+	bgr &= 0xFFFFFF; // ignored A
+
+	for (;n>0; n--, p++)
+	{
+		unsigned32 fg = *p;
+		unsigned a = (fg>>24) & 0xFF;
+		if (a == 0) *p = fg;
+		else if (a == 0xFF) *p = bgr;
+		else {
+			unsigned a1 = 255-a;
+			*p = 
+				((((bgr & 0x0000FF)*a + (fg&0x0000FF)*a1)>>8)&0x0000FF) +
+				((((bgr & 0x00FF00)*a + (fg&0x00FF00)*a1)>>8)&0x00FF00) +
+				((((bgr & 0xFF0000)*a + (fg&0xFF0000)*a1)>>8)&0xFF0000);
+		}
+	}
+}
+
 
 //////////// XPMImage
 
@@ -1251,6 +1309,90 @@ bool XPMImage::Load(const char **list, int count)
 	return true;
 }
 
+///////////////////////// IconData /////////////////////////////////
+
+IconData::IconData(const Image32 &im, int fcSize)
+: fCacheSize(fcSize>0 ? fcSize : 1 ), fCache(fcSize>0 ? fcSize : 1), haveAlpha(false), counter(1)
+{
+	image.copy(im);
+	unsigned32 *p = image.line(0);
+
+	if (p) {
+		int n = image.width()*image.height();
+		for (;n>0; n--, p++)
+			if ((*p & 0xFF000000) != 0) {
+				haveAlpha = true;
+				break;
+			}
+	}
+}
+
+extern void MakeDisabledImage32(Image32 *dest, const Image32 &src);
+
+IconData::Node* IconData::GetNode(bool enabled, unsigned bg)
+{
+	int n = fCacheSize;
+	int i = 0;
+
+	for (; i < n && fCache[i].data.ptr(); i++)
+		if (fCache[i].enabled == enabled && (!haveAlpha || fCache[i].bg == bg))
+			break;
+
+	if (i < n && fCache[i].data.ptr())
+	{
+		if (i > 0)
+		{
+			FCNode fcNode = fCache[i];
+			for (int j = i; j>0; j--)
+				fCache[j] = fCache[j-1];
+			fCache[0] = fcNode;
+		}
+		return fCache[0].data.ptr();
+	}
+
+	Image32 im;
+	
+	if (enabled) {
+		im.copy(image);
+	} else {
+		MakeDisabledImage32(&im, image);
+	}
+
+	FCNode fcNode;
+	fcNode.bg = bg;
+	fcNode.enabled = enabled;
+
+	if (bg != 0xFF000000) 
+		im.set_background(bg);
+
+	fcNode.data = CreateNode(im);
+	for ( i = n-1; i>0; i--)
+		fCache[i] = fCache[i-1];
+
+	fCache[0] = fcNode;
+	return fCache[0].data.ptr();
+}
+
+//	static cptr<Node> CreateNode(Image32 image);
+//	static void DrawNode(wal::GC &gc, Node *node, int x, int y);
+
+void IconData::Draw(wal::GC &gc, int x, int y, bool enabled)
+{
+	Node *node = GetNode(enabled, 0xFF000000);
+
+	if (node)
+		DrawNode(gc, node, x, y);
+}
+
+void IconData::DrawF(wal::GC &gc, int x, int y, bool enabled)
+{
+	Node *node = GetNode(enabled, gc.FillRgb());
+	if (node)
+		DrawNode(gc, node, x, y);
+}
+
+IconData::~IconData(){}
+
 /////////////////////////// cicon //////////////////////////////////
 
 static Mutex iconCopyMutex(true); 
@@ -1300,6 +1442,19 @@ inline int IconDist(const cicon &a, int w, int h)
 	w-=a.Width(); if (w<0) w=-w;
 	h-=a.Height(); if (h<0) h=-h;
 	return w+h;
+}
+
+void cicon::Draw(wal::GC &gc, int x, int y, bool enabled)
+{
+	if (!data) return;
+	data->Draw(gc, x, y, enabled);
+}
+
+
+void cicon::DrawF(wal::GC &gc, int x, int y, bool enabled)
+{
+	if (!data) return;
+	data->DrawF(gc, x, y, enabled);
 }
 
 
@@ -1365,14 +1520,19 @@ void cicon::Copy(const cicon &a)
 void cicon::Load(const Image32 &image, int w, int h)
 {
 	if (data) Clear();
-	
-	IconData *p = new IconData;
+
+	IconData *p = 0; //new IconData;
 	try {
-		p->counter = 1;
-//printf("load cicon %i, %i\n", w, h);		
-		p->image.copy(image, w, h);
+		if (image.width() == w && image.height() == h)
+		{
+			p = new IconData(image);
+		} else {
+			Image32 im;
+			im.copy(image, w, h);
+			p = new IconData(im);
+		}
 	} catch (...) {
-		delete p;
+		if (p) delete p;
 		throw;
 	}
 	data = p;

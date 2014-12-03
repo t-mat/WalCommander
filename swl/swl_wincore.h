@@ -504,6 +504,9 @@ public:
 	void copy(const Image32 &a, int w, int h);
 	
 	void copy(const XPMImage &xpm);
+	void copy_gimp_c_rgba(void *);
+
+	void set_background(unsigned bgr); //A - ignored
 	
 	void clear();
 	
@@ -532,6 +535,8 @@ public:
 	Win32CompatibleBitmap():handle(0),_w(0), _h(0){}
 	Win32CompatibleBitmap(int w, int h):handle(0){ init(w, h); }
 	Win32CompatibleBitmap(Image32 &image){ Set(image); }
+	int Width() const { return _w;} 
+	int Height() const { return _h;} 
 	void Set(Image32 &image);
 	void Put(wal::GC &gc, int src_x, int src_y, int dest_x, int dest_y, int w, int h);
 	~Win32CompatibleBitmap();
@@ -550,7 +555,7 @@ public:
 	IntXImage(int w, int h){ init(w,h); }
 	IntXImage(Image32 &image);
 	void Set(Image32 &image);
-	void Set(Image32 &image, unsigned bgColor);
+//	void Set(Image32 &image, unsigned bgColor);
 	void Put(wal::GC &gc, int src_x, int src_y, int dest_x, int dest_y, int w, int h);
 	XImage* GetXImage(){return data.ptr()?&im:0; };
 	~IntXImage();
@@ -591,22 +596,39 @@ public:
 struct IconData {
 	int counter;
 	Image32 image;
+	bool haveAlpha;
 
 	#ifdef _WIN32
-		cptr<Win32CompatibleBitmap> normal;
-		cptr<Win32CompatibleBitmap> disabled;
-
+		typedef Win32CompatibleBitmap Node;
 	#else 	
 		//x11 cache
 		struct Node {
 			SCImage image;
 			carray<char> mask;
-			unsigned bgColor;
+//			unsigned bgColor;
 		};
 		
-		cptr<Node> normal;
-		cptr<Node> disabled;
 	#endif
+
+	struct FCNode {
+		bool enabled;
+		unsigned bg; //if bg == 0xFF000000 then no bg 
+		cptr<Node> data;
+	};
+
+	int fCacheSize;
+	carray<FCNode> fCache;
+
+	Node* GetNode(bool enabled, unsigned bg);
+
+	static cptr<Node> CreateNode(Image32 &image);
+	static void DrawNode(wal::GC &gc, Node *node, int x, int y);
+
+	void Draw(wal::GC &gc, int x, int y, bool enabled);
+	void DrawF(wal::GC &gc, int x, int y, bool enabled);
+
+	IconData(const Image32 &im, int fcSize = 8);
+	~IconData();
 };
 
 
@@ -858,6 +880,9 @@ extern int uiPointerColor;
 extern int uiOdd;
 extern int ui3d;
 extern int uiReadonly;
+extern int uiVariable;
+extern int uiValue;
+
 
 
 class Win {

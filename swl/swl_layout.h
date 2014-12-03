@@ -11,16 +11,16 @@ namespace wal {
 struct LSRange {
 	int minimal, maximal, ideal;
 
-	LSRange():minimal(0),maximal(0),ideal(0){}
-	LSRange(int mi, int mx, int id):minimal(mi),maximal(mx),ideal(id){}
-	void Check(){ if (ideal<minimal) ideal = minimal; if (maximal<ideal) maximal = ideal; }
-	void Plus(const LSRange &a){ minimal+=a.minimal; maximal+=a.maximal; ideal+=a.ideal; }
+	LSRange() : minimal(0), maximal(0), ideal(0){}
+	LSRange(int mi, int mx, int id) : minimal(mi), maximal(mx), ideal(id) {}
+	void Check(){ if (ideal<minimal) ideal = minimal; if (maximal < ideal) maximal = ideal; }
+	void Plus(const LSRange &a){ minimal += a.minimal; maximal += a.maximal; ideal += a.ideal; }
 
 	LSRange& Max(const LSRange &a)
 	{
-		if (minimal<a.minimal) minimal=a.minimal;
-		if (maximal<a.maximal) maximal=a.maximal;
-		if (ideal<a.ideal) ideal=a.ideal;
+		if (minimal < a.minimal) minimal = a.minimal;
+		if (maximal < a.maximal) maximal = a.maximal;
+		if (ideal < a.ideal) ideal = a.ideal;
 		return *this;
 	}
 };
@@ -29,7 +29,7 @@ struct LSize {
 	LSRange x,y;
 
 	LSize(){}
-	LSize(const cpoint &p):x(p.x, p.x, p.x), y(p.y, p.y, p.y){ }
+	LSize(const cpoint &p) : x(p.x, p.x, p.x), y(p.y, p.y, p.y){ }
 	void Set(const crect &rect)
 	{
 		x.minimal = x.maximal = x.ideal = rect.Width(); 
@@ -49,7 +49,7 @@ struct SpaceStruct {
 	int size;
 
 	void Clear(){ range = initRange; size = 0; }
-	SpaceStruct():growth(false),size(0){};
+	SpaceStruct() : growth(false), size(0) {};
 };
 
 //структура для сбора списка окон, которым требуется изменение позиции или размера
@@ -61,41 +61,12 @@ struct WSS {
 
 struct LItem {
 	//надо включить выравнивание
-	int r1,r2,c1,c2;
-	LItem(int _r1, int _r2, int _c1, int _c2):r1(_r1),r2(_r2),c1(_c1),c2(_c2){}
-	virtual void GetLSize(LSize *ls)=0;
-	virtual void *ObjPtr()=0;
-	virtual void SetPos(crect rect, wal::ccollect<WSS> &wList)=0;
+	int r1, r2, c1, c2;
+	LItem(int _r1, int _r2, int _c1, int _c2) : r1(_r1), r2(_r2), c1(_c1), c2(_c2){}
+	virtual void GetLSize(LSize *ls) = 0;
+	virtual void *ObjPtr() = 0;
+	virtual void SetPos(crect rect, wal::ccollect<WSS> &wList) = 0;
 	virtual ~LItem();
-};
-
-struct LItemWin: public LItem {
-	Win * w;
-	LItemWin(Win* _w, int _r1, int _r2, int _c1, int _c2):LItem(_r1,_r2,_c1,_c2),w(_w){}
-	virtual void GetLSize(LSize *ls);
-	virtual void SetPos(crect rect, wal::ccollect<WSS> &wList);
-	virtual void *ObjPtr();
-	virtual ~LItemWin();
-};
-
-//GetWindowRect
-
-struct LItemLayout: public LItem {
-	Layout *l;
-	LItemLayout(Layout* _l, int _r1, int _r2, int _c1, int _c2):LItem(_r1,_r2,_c1,_c2),l(_l){}
-	virtual void GetLSize(LSize *ls);
-	virtual void SetPos(crect rect, wal::ccollect<WSS> &wList);
-	virtual void *ObjPtr();
-	virtual ~LItemLayout();
-};
-
-struct LItemRect: public LItem {
-	crect *rect;
-	LItemRect(crect *r, int _r1, int _r2, int _c1, int _c2):LItem(_r1,_r2,_c1,_c2),rect(r){}
-	virtual void GetLSize(LSize *ls);
-	virtual void SetPos(crect rect, wal::ccollect<WSS> &wList);
-	virtual void *ObjPtr();
-	virtual ~LItemRect();
 };
 
 
@@ -114,11 +85,20 @@ class Layout {
 
 	void Recalc();
 public:
+
+	enum {
+		LEFT = 1,
+		RIGHT = 2,
+		TOP = 4,
+		BOTTOM = 8,
+		CENTER = 0
+	};
+
 	Layout(int lineCount, int colCount);
 	void DelObj(void *p);
-	void AddWin(Win *w, int r1,int c1,int r2=-1, int c2=-1);
-	void AddLayout(Layout *l, int r1,int c1,int r2=-1,int c2=-1);
-	void AddRect(crect *rect, int r1,int c1,int r2=-1,int c2=-1);
+	void AddWin(Win *w, int r1, int c1, int r2 = -1, int c2 = -1, int al = LEFT | TOP);
+	void AddLayout(Layout *l, int r1, int c1, int r2 = -1, int c2 = -1, int al = LEFT | TOP);
+	void AddRect(crect *rect, int r1, int c1, int r2 = -1, int c2 = -1);
 	void GetLSize(LSize *ls);
 	LSize GetLSize(){ LSize ls; GetLSize(&ls); return ls; }
 	void SetPos(crect rect, wal::ccollect<WSS> &wList);
@@ -128,6 +108,41 @@ public:
 	void SetColGrowth(int n, bool enable = true);
 	~Layout();
 };
+
+
+
+struct LItemWin: public LItem {
+	Win * w;
+	int align;
+	LItemWin(Win* _w, int _r1, int _r2, int _c1, int _c2, int al) : LItem(_r1, _r2, _c1, _c2), w(_w), align(al){}
+	virtual void GetLSize(LSize *ls);
+	virtual void SetPos(crect rect, wal::ccollect<WSS> &wList);
+	virtual void *ObjPtr();
+	virtual ~LItemWin();
+};
+
+//GetWindowRect
+
+struct LItemLayout: public LItem {
+	Layout *l;
+	int align;
+	LItemLayout(Layout* _l, int _r1, int _r2, int _c1, int _c2, int al):LItem(_r1, _r2, _c1, _c2), l(_l), align(al){}
+	virtual void GetLSize(LSize *ls);
+	virtual void SetPos(crect rect, wal::ccollect<WSS> &wList);
+	virtual void *ObjPtr();
+	virtual ~LItemLayout();
+};
+
+struct LItemRect: public LItem {
+	crect *rect;
+	LItemRect(crect *r, int _r1, int _r2, int _c1, int _c2):LItem(_r1,_r2,_c1,_c2),rect(r){}
+	virtual void GetLSize(LSize *ls);
+	virtual void SetPos(crect rect, wal::ccollect<WSS> &wList);
+	virtual void *ObjPtr();
+	virtual ~LItemRect();
+};
+
+
 
 }; //namespace wal
 

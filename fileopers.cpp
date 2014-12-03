@@ -267,12 +267,13 @@ public:
 	
 	volatile bool progressChanged;
 	volatile int64 infoSize, infoProgress;
-
+	volatile unsigned infoMs; //for calculating copy speed 
+	volatile int64 infoBytes; //
 	
 	OperCFData(NCDialogParent *p)
 	:	OperData(p), executed(false), 
 		pathChanged(false), infoCount(0), progressChanged(false),
-		infoSize(0), infoProgress(0) {}
+		infoSize(0), infoProgress(0), infoMs(0), infoBytes(0) {}
 	
 	void Clear()
 	{
@@ -317,7 +318,7 @@ public:
 	//from и to - эффект cptr !!!
 	bool SendCopyNextFileInfo(FSString from, FSString to);
 	
-	bool SendProgressInfo(int64 size, int64 progress);
+	bool SendProgressInfo(int64 size, int64 progress, int64 bytes);
 	
 	bool CopyLink(FS *srcFs, FSPath &srcPath, FSNode *srcNode, FS *destFs, FSPath &path, bool move);
 	bool CopyFile(FS *srcFs, FSPath &srcPath, FSNode *srcNode, FS *destFs, FSPath &destPath, bool move);
@@ -590,7 +591,12 @@ bool OperCFThread::SendCopyNextFileInfo(FSString from, FSString to)
 	return true;
 }
 
-bool OperCFThread::SendProgressInfo(int64 size, int64 progress)
+//
+namespace wal {
+extern unsigned GetTickMiliseconds();
+};
+
+bool OperCFThread::SendProgressInfo(int64 size, int64 progress, int64 bytes)
 {
 	MutexLock lock(Node().GetMutex());
 	if (Node().NBStopped()) return false;
@@ -599,7 +605,10 @@ bool OperCFThread::SendProgressInfo(int64 size, int64 progress)
 
 	data->infoSize = size;
 	data->infoProgress = progress;
+	data->infoBytes += bytes;
+	data->infoMs = GetTickMiliseconds();
 	data->progressChanged = true;
+	
 	if (!WinThreadSignal(INFO_NEXTFILE)) return false;
 	return true;
 }
@@ -818,6 +827,18 @@ class CopyDialog: public SimpleCFThreadWin {
 	OperFileNameWin _from, _to;
 	NCNumberWin _countWin;
 	NCProgressWin _progressWin;
+	StaticLine _speedStr;
+	enum {
+		SPEED_NODE_COUNT = 10
+	};
+	struct SpeedNode {
+		unsigned deltaMs;
+		int64 bytes;
+		SpeedNode():deltaMs(0), bytes(0){}
+	} _speedList[SPEED_NODE_COUNT];
+
+	unsigned _lastMs;
+
 public:
 	CopyDialog(NCDialogParent *parent, bool move = false)
 	:	SimpleCFThreadWin(parent, move ? _LT("Move") : _LT("Copy") ),
@@ -828,7 +849,9 @@ public:
 		_from(this),
 		_to(this),
 		_countWin(this), 
-		_progressWin(this)
+		_progressWin(this),
+		_speedStr(uiValue, this, 0, 0, StaticLine::LEFT, 10),
+		_lastMs(GetTickMiliseconds())
 	{
 		_layout.AddWin(&_text1, 0, 0, 0, 1);
 		_layout.AddWin(&_from, 1, 0, 1, 1);
@@ -837,6 +860,8 @@ public:
 		_layout.AddWin(&_progressWin, 4,0,4,1);
 		_layout.AddWin(&_text3, 5, 0);
 		_layout.AddWin(&_countWin, 5, 1);
+		_layout.AddWin(&_speedStr, 6, 0);
+
 		_text1.Show(); _text1.Enable();
 		_text2.Show(); _text2.Enable();
 		_text3.Show(); _text3.Enable();
@@ -844,13 +869,133 @@ public:
 		_to.Show(); _to.Enable();
 		_countWin.Show(); _countWin.Enable();
 		_progressWin.Show(); _progressWin.Enable();
+		_speedStr.Show(); _speedStr.Enable();
 		AddLayout(&_layout);
+		SetTimer(1, 1000);
 		SetPosition();
 	}
 	
 	virtual void OperThreadSignal(int info);
+	virtual void EventTimer(int tid);
 	virtual ~CopyDialog();
 };
+
+
+#define GIG (int64(1024)*1024*1024)
+#define MEG (int64(1024)*1024)
+#define KIL (1024)
+
+static char* GetSmallPrintableSpeedStr(char buf[64], int64 size)
+{
+	char str[16];
+	str[0] = 0;
+	
+	int64 num = size;
+	int mod = 0;
+	
+	if (num >= GIG)//:)
+	{
+		mod = (num % GIG)/(GIG/10);
+		num /= GIG;
+		str[0] =' ';
+		str[1] ='G';
+		str[2] ='b';
+		str[3] ='/';
+		str[4] ='s';
+		str[5] =0;
+	} else 
+	if (num >= MEG)
+	{
+		mod = (num % MEG)/(MEG/10);
+		num /= MEG;
+		str[0] =' ';
+		str[1] ='M';
+		str[2] ='b';
+		str[3] ='/';
+		str[4] ='s';
+		str[5] =0;
+	} else 
+	if (num >= KIL)
+	{
+		mod = (num % KIL)/(KIL/10);
+		num /= KIL;
+		str[0] =' ';
+		str[1] ='K';
+		str[2] ='b';
+		str[3] ='/';
+		str[4] ='s';
+		str[5] =0;
+	} else mod = -1;
+	
+
+	char dig[64];
+	char *t = unsigned_to_char<int64>(num, dig);
+	if (mod>=0) { t--; t[0]='.'; t[1]=mod+'0'; t[2]=0; }
+	
+	char *us = buf;
+	for (char *s = dig; *s; s++)
+		*(us++) = *s;
+	
+	for (char *t = str; *t; t++)
+		*(us++) = *t;
+		
+	*us = 0;
+	
+	return buf;
+}
+
+
+void CopyDialog::EventTimer(int tid)
+{
+	if (tid == 1)
+	{
+		unsigned ms = 0;
+		int64 bytes = 0;
+
+		{
+			MutexLock lock(&threadData.infoMutex);
+			ms = threadData.infoMs;
+			bytes = threadData.infoBytes;
+			threadData.infoBytes = 0;
+			lock.Unlock();
+		}
+
+		//shift
+		int i;
+		for (i = SPEED_NODE_COUNT-1; i>0; i--) 
+			_speedList[i] = _speedList[i-1];
+
+		_speedList[0].bytes = bytes;
+
+		if (bytes > 0) {
+			unsigned n = ms - _lastMs;
+			_speedList[0].deltaMs = n > 1000000 ? 0 : n;
+			_lastMs = ms;
+		} else
+			_speedList[0].deltaMs = 0;
+
+		int64 sumBytes = 0;
+		int64 sumMs = 0;
+
+		for (i = 0; i<SPEED_NODE_COUNT; i++)
+		{
+			sumMs += _speedList[i].deltaMs;
+			sumBytes += _speedList[i].bytes;
+		}
+
+		int64 speed = 0;
+
+		if (sumMs > 0 && sumBytes > 0)
+		{
+			speed = (sumBytes*1000)/sumMs;
+		}
+
+		char buf[64];
+		_speedStr.SetText(utf8_to_unicode( GetSmallPrintableSpeedStr(buf, speed)).ptr());
+
+		return;
+	}
+}
 
 void CopyDialog::OperThreadSignal(int info)
 {
@@ -934,7 +1079,7 @@ bool OperCFThread::CopyFile(FS *srcFs, FSPath &srcPath, FSNode *srcNode, FS *des
 	}
 
 	SendCopyNextFileInfo(srcFs->Uri(srcPath), destFs->Uri(destPath));
-	SendProgressInfo(srcNode->st.size, 0);
+	SendProgressInfo(srcNode->st.size, 0, 0);
 	
 	bool stopped = false;
 	
@@ -1031,13 +1176,13 @@ bool OperCFThread::CopyFile(FS *srcFs, FSPath &srcPath, FSNode *srcNode, FS *des
 		}
 
 		doneBytes += bytes;
-		SendProgressInfo(srcNode->st.size, doneBytes);
+		SendProgressInfo(srcNode->st.size, doneBytes, bytes);
 	} 
 
 	srcFs->Close(in, 0, Info());
 	in = -1;
 	
-	SendProgressInfo(srcNode->st.size, srcNode->st.size);
+	SendProgressInfo(srcNode->st.size, srcNode->st.size, 0);
 
 	{
 		int r = destFs->Close(out, &ret_err, Info());
