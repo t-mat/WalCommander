@@ -107,10 +107,38 @@ void NCEditLine::Clear()
 	SetText(&s0);
 }
 
+bool NCEditLine::OnTextChanged()
+{
+	if (AcEnabled())
+	{
+		if (IsBoxOpened() && !_autoMode) return false;
+		
+		if (!_histList.ptr()) 
+			LoadHistoryList();
+
+		carray<unicode_t> text = GetText();
+		
+		SetCBList(text.ptr());
+
+		unicode_t *u = text.ptr();
+		while (*u == ' ' || *u == '\t') u++;
+
+		if (ComboBox::Count() > 0 && *u) 
+		{
+			_autoMode = true;
+			OpenBox();
+		} else 
+			CloseBox();
+	}
+	return true;
+}
+
 bool NCEditLine::Command(int id, int subId, Win *win, void *d)
 {
 	if (IsEditLine(win))
 	{
+		return OnTextChanged();
+/*		
 		if (AcEnabled())
 		{
 			if (IsBoxOpened() && !_autoMode) return false;
@@ -133,6 +161,7 @@ bool NCEditLine::Command(int id, int subId, Win *win, void *d)
 				CloseBox();
 		}
 		return true;
+*/		
 	};
 
 	return ComboBox::Command(id, subId, win, d);
@@ -202,7 +231,22 @@ void NCEditLine::Commit()
 void NCEditLine::SetText(const unicode_t *txt, bool mark)
 {
 	ComboBox::SetText(txt, mark);
+	CloseBox();
+	//OnTextChanged();
 }
+
+void NCEditLine::InsertText(unicode_t t)
+{
+	ComboBox::InsertText(t);
+	OnTextChanged();
+}
+
+void NCEditLine::InsertText(const unicode_t *txt)
+{
+	ComboBox::InsertText(txt);
+	OnTextChanged();
+}
+
 
 NCEditLine::~NCEditLine(){}
 

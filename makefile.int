@@ -14,7 +14,7 @@ HN = libconf.h nc.h ncwin.h panel.h ncdialogs.h  terminal.h termwin.h ncedit.h s
  operthread.h operwin.h vfs.h vfspath.h vfs-smb.h vfs-uri.h fileopers.h mfile.h eloadsave.h smblogon.h ext-app.h bfile.h \
  wcm-config.h panel_list.h tcp_sock.h vfs-ftp.h ftplogon.h charsetdlg.h vfs-sftp.h sftpdlg.h color-style.h filesearch.h help.h ux_util.h \
  strconfig.h shortcuts.h fontdlg.h ncfonts.h shl.h toolbar.h ncview.h search-dlg.h search-tools.h shell-tools.h t-emulator.h dircalc.h ltext.h \
- dlg-ctrl-l.h nceditline.h
+ dlg-ctrl-l.h nceditline.h config-util.h
 
 OBJS =  wal_tmpls.o \
 	wal.o\
@@ -56,6 +56,7 @@ OBJS =  wal_tmpls.o \
 	eloadsave.o \
 	smblogon.o \
 	ext-app-ux.o \
+	config-util.o \
 	wcm-config.o \
 	ftplogon.o \
 	charsetdlg.o \
@@ -126,6 +127,9 @@ operwin.o: $(HW) $(HS) $(HN) operwin.cpp
 
 wcm-config.o: $(HW) $(HS) $(HN) wcm-config.cpp 
 	$(CC) -c $(CFLAGS) wcm-config.cpp 
+	
+config-util.o: $(HW) $(HS) $(HN) config-util.cpp 
+	$(CC) -c $(CFLAGS) config-util.cpp 
 	
 color-style.o: $(HW) $(HS) $(HN) color-style.cpp 
 	$(CC) -c $(CFLAGS) color-style.cpp 

@@ -17,7 +17,12 @@ public:
 	NCEditLine(const char *acGroup, int nId, Win *parent, const unicode_t *txt, int cols, int rows, bool up, bool frame3d, bool nofocusframe,  crect *rect = 0);
 	virtual bool Command(int id, int subId, Win *win, void *d);
 	void Clear();
+	bool OnTextChanged();
 	void SetText(const unicode_t *txt, bool mark = false);
+	
+	void InsertText(unicode_t t);
+	void InsertText(const unicode_t *txt);
+
 	virtual int UiGetClassId();
 	virtual bool OnOpenBox();
 	virtual void OnCloseBox();

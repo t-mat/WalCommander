@@ -1,6 +1,6 @@
+#include "ncdialogs.h"
 #include "smblogon.h"
 
-#include "ncdialogs.h"
 #include "string-util.h" //для carray_cat
 #include "ltext.h"
 #include "nceditline.h"

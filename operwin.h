@@ -6,8 +6,12 @@
 #ifndef OPERWIN_H
 #define OPERWIN_H
 
+#ifdef CONSOLE
+#include "../console/console.h"
+using namespace console;
+#else
 #include "swl.h"
-
+#endif
 using namespace wal;
 
 
@@ -37,7 +41,7 @@ public:
 			stopped(false), data(d), 
 			cbData(0), cbRet(-1), cbFunc(0)
 		{}
-		
+
 	Mutex* GetMutex(){ return &mutex; }
 	
 	void* Data(){ return data; } //можно вызывать и работать с данными только заблакировав mutex получаемый через GetMutex
@@ -69,9 +73,13 @@ class OperThreadWin: public Win {
 	OperThreadNode *tNode;
 	bool cbExecuted;
 public:
+#ifdef CONSOLE
+	OperThreadWin(int nId = 0, Win *_parent = 0, int flags = CLICKFOCUS, const crect *rect=0)
+		: Win(nId, _parent, flags, rect), nextThreadId(0), tNode(0), cbExecuted(false) {}
+#else
 	OperThreadWin(WTYPE t, unsigned hints=0, int nId = 0, Win *_parent = 0, const crect *rect=0)
 		: Win(t, hints, _parent, rect, nId), nextThreadId(0), tNode(0), cbExecuted(false) {}
-	
+#endif	
 	void RunNewThread(const char *info, OperThreadFunc f, void *data); //может быть исключение
 	virtual void OperThreadSignal(int info);
 	virtual void OperThreadStopped();

@@ -2,9 +2,10 @@
 #define WCM_CONFIG_H
 
 #include "ncdialogs.h"
+#include "config-util.h"
 
-struct WcmConfig {
-	enum MapType { MT_BOOL, MT_INT, MT_STR };
+struct WcmConfig: public ConfigStruct {
+/*	enum MapType { MT_BOOL, MT_INT, MT_STR };
 	struct Node {
 		MapType type;
 		const char *section;
@@ -25,7 +26,7 @@ struct WcmConfig {
 	void MapInt(const char *section, const char *name, int *pInt, int def);
 	void MapBool(const char *section, const char *name, bool *pInt, bool def);
 	void MapStr(const char *section, const char *name, carray<char> *pStr, const char *def = 0);
-
+*/
 /////////////////////////////////
 	carray<char> style;
 
@@ -70,7 +71,7 @@ struct WcmConfig {
 	
 	WcmConfig();
 	void Load();
-	void Save();
+//	void Save();
 };
 
 extern WcmConfig wcmConfig;

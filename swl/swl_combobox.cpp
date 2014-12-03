@@ -115,13 +115,13 @@ void ComboBox::SetText(const unicode_t *txt, bool mark)
 	MoveCurrent(-1);
 }
 
-void ComboBox::Insert(unicode_t t)
+void ComboBox::InsertText(unicode_t t)
 {
 	if (this->_flags & READONLY) return;
 	_edit.Insert(t);
 }
 
-void ComboBox::Insert(const unicode_t *txt)
+void ComboBox::InsertText(const unicode_t *txt)
 {
 	if (this->_flags & READONLY) return;
 	_edit.Insert(txt);
@@ -195,7 +195,7 @@ bool ComboBox::EventKey(cevent_key* pEvent)
 			if (_box.ptr()) 
 			{ 
 				CloseBox();
-				return true;
+				return _current >= 0;
 			}
 			break;
 
@@ -339,7 +339,7 @@ bool ComboBox::EventMouse(cevent_mouse* pEvent)
 		rect = _edit.ScreenRect();
 		if (rect.In(point))
 		{
-			cevent_mouse ev(pEvent->Type(), cpoint(point.x - rect.left, point.y - rect.top), pEvent->Button(), pEvent->ButtonFlag(), pEvent->Mod());
+			cevent_mouse ev(pEvent->Type(), cpoint(point.x - rect.left, point.y - rect.top), pEvent->Button(), pEvent->ButtonFlag(), pEvent->Mod(), pEvent->Delta());
 			return _edit.EventMouse(&ev);
 		} else
 		if (_box.ptr())
@@ -347,7 +347,7 @@ bool ComboBox::EventMouse(cevent_mouse* pEvent)
 			rect = _box->ScreenRect();
 			if (rect.In(point))
 			{
-				cevent_mouse ev(pEvent->Type(), cpoint(point.x - rect.left, point.y - rect.top), pEvent->Button(), pEvent->ButtonFlag(), pEvent->Mod());
+				cevent_mouse ev(pEvent->Type(), cpoint(point.x - rect.left, point.y - rect.top), pEvent->Button(), pEvent->ButtonFlag(), pEvent->Mod(), pEvent->Delta());
 				return _box->EventMouse(&ev);
 			} 
 			else if (pEvent->Type() == EV_MOUSE_PRESS)

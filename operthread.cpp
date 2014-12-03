@@ -34,7 +34,12 @@ struct CbRedMsgData {
 static int RedCallBack(void *cbData)
 {
 	CbRedMsgData &param = *((CbRedMsgData*)cbData);
-	return NCMessageBox(param.parent, param.operName, param.message, true, param.buttons);
+	
+	return NCMessageBox(
+#ifndef CONSOLE	
+		param.parent, 
+#endif
+		param.operName, param.message, true, param.buttons);
 }
 
 int OperThread::RedMessage(ButtonDataNode * b, const char *str, const char *sysErr)

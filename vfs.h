@@ -7,7 +7,7 @@
 #define NCVFS_H
 
 #include <wal.h>
-#include "ncdialogs.h"
+//#include "ncdialogs.h"
 
 #include "vfspath.h"
 #include "strconfig.h"

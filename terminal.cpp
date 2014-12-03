@@ -261,41 +261,187 @@ Terminal::Terminal(/*int maxRows*/)
 		return 0;
 	}
 
-void Terminal::Key(unsigned key, unsigned ch)
+#define ESC "\x1b"
+	
+
+
+void Terminal::Key(unsigned key, unsigned ch, unsigned mod)
 {
+	const char *m = "";
+	
+	if (mod & KM_SHIFT) {
+		if (mod & KM_CTRL)
+			if (mod & KM_ALT) m = ";8"; else m = ";6";
+		else 
+			if (mod & KM_ALT) m = ";4"; else m = ";2";
+	} else {
+		if (mod & KM_CTRL) 
+			if (mod & KM_ALT) m = ";7"; else m = ";5";
+		else
+			if (mod & KM_ALT) m = ";3";
+	};
+	
+	char ec = 0;
+	
 	switch (key) {
-	case VK_F1:	Output("\x1bOP",3); return;
-	case VK_F2:	Output("\x1bOQ",3); return;
-	case VK_F3:	Output("\x1bOR",3); return;
-	case VK_F4:	Output("\x1bOS",3); return;
+	case VK_F1:	ec = 'P'; if (*m) goto CSI_1_mod; goto SS3;
+	case VK_F2:	ec = 'Q'; if (*m) goto CSI_1_mod; goto SS3;
+	case VK_F3:	ec = 'R'; if (*m) goto CSI_1_mod; goto SS3;
+	case VK_F4:	ec = 'S'; if (*m) goto CSI_1_mod; goto SS3;
 
-	case VK_F5:	Output("\x1b[15~",5); return;
-	case VK_F6:	Output("\x1b[17~",5); return;
-	case VK_F7:	Output("\x1b[18~",5); return;
-	case VK_F8:	Output("\x1b[19~",5); return;
-	case VK_F9:	Output("\x1b[20~",5); return;
-	case VK_F10:	Output("\x1b[21~",5); return;
-	case VK_F11:	Output("\x1b[23~",5); return;
-	case VK_F12:	Output("\x1b[24~",5); return;
+	case VK_F5:	Output("\x1b[15"); Output(m); Output('~'); return;
+	case VK_F6:	Output("\x1b[17"); Output(m); Output('~'); return;
+	case VK_F7:	Output("\x1b[18"); Output(m); Output('~'); return;
+	case VK_F8:	Output("\x1b[19"); Output(m); Output('~'); return;
+	case VK_F9:	Output("\x1b[20"); Output(m); Output('~'); return;
+	case VK_F10:	Output("\x1b[21"); Output(m); Output('~'); return;
+	case VK_F11:	Output("\x1b[23"); Output(m); Output('~'); return;
+	case VK_F12:	Output("\x1b[24"); Output(m); Output('~'); return;
 
-	case VK_UP:	Output(_emulator.KbIsNormal() ? "\x1b[A" : "\x1bOA" ,3); return;
-	case VK_DOWN:	Output(_emulator.KbIsNormal() ? "\x1b[B" : "\x1bOB" ,3); return;
-	case VK_RIGHT:	Output(_emulator.KbIsNormal() ? "\x1b[C" : "\x1bOC" ,3); return;
-	case VK_LEFT:	Output(_emulator.KbIsNormal() ? "\x1b[D" : "\x1bOD" ,3); return;
-	case VK_HOME:	Output(_emulator.KbIsNormal() ? "\x1b[H" : "\x1bOH" ,3); return;
-	case VK_END:	Output(_emulator.KbIsNormal() ? "\x1b[F" : "\x1bOF" ,3); return;
+	case VK_UP:	ec = 'A'; if (*m) goto CSI_1_mod; if (_emulator.KbIsNormal()) goto CSI; goto SS3;
+	case VK_DOWN:	ec = 'B'; if (*m) goto CSI_1_mod; if (_emulator.KbIsNormal()) goto CSI; goto SS3;
+	case VK_RIGHT:	ec = 'C'; if (*m) goto CSI_1_mod; if (_emulator.KbIsNormal()) goto CSI; goto SS3;
+	case VK_LEFT:	ec = 'D'; if (*m) goto CSI_1_mod; if (_emulator.KbIsNormal()) goto CSI; goto SS3;
+	case VK_HOME:	ec = 'H'; if (*m) goto CSI_1_mod; if (_emulator.KbIsNormal()) goto CSI; goto SS3;
+	case VK_END:	ec = 'F'; if (*m) goto CSI_1_mod; if (_emulator.KbIsNormal()) goto CSI; goto SS3;
 
 	case VK_BACK: Output(wcmConfig.terminalBackspaceKey ? 8 : 127); return; //херово конечно без блокировок обращаться, но во время работы терминала конфиг не меняется
-	case VK_DELETE:	Output("\x1b[3~",4); return;
-	case VK_NEXT:	Output("\x1b[6~",4); return;
-	case VK_PRIOR:	Output("\x1b[5~",4); return;
-	case VK_INSERT:	Output("\x1b[2~",4); return;
+	case VK_DELETE:	Output("\x1b[3"); Output(m); Output('~'); return;
+	case VK_NEXT:	Output("\x1b[6"); Output(m); Output('~'); return;
+	case VK_PRIOR:	Output("\x1b[5"); Output(m); Output('~'); return;
+	case VK_INSERT:	Output("\x1b[2"); Output(m); Output('~'); return;
+	
+	case VK_TAB: 
+		if (mod &KM_SHIFT) { 
+			Output("\x1b[Z"); 	
+			return; 
+		}; 
+		break;
 
 	}
 
 	if (!ch) return;
 	
 	UnicodeOutput(ch);
+	return;
+SS3:
+	Output(ESC "O"); Output(ec);
+	return;
+
+CSI:
+	Output(ESC "["); Output(ec);
+	return;
+	
+CSI_1_mod:
+	Output(ESC "[1"); Output(m);  Output(ec);
+	return;
+	
+}
+
+inline char* to_utf8(char *s, unsigned c)
+{
+	if (c < 0x800)
+	{
+		if (c < 0x80)
+			*(s++) = c;
+		else {
+			*(s++) = (0xC0 | (c>>6));
+			*(s++) = 0x80 | (c & 0x3F); 
+		}
+	} else {
+		if (c < 0x10000) //1110xxxx 10xxxxxx 10xxxxxx
+		{
+			s[2] = 0x80 | c & 0x3F; c>>=6;
+			s[1] = 0x80 | c & 0x3F; c>>=6;
+			s[0] = (c & 0x0F) | 0xE0;
+			s +=3;
+		} else { //11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+			s[3] = 0x80 |c & 0x3F; c>>=6;
+			s[2] = 0x80 | c & 0x3F; c>>=6;
+			s[1] = 0x80 | c & 0x3F; c>>=6;
+			s[0] = (c & 0x7) | 0xF0;
+			s += 4;
+		}
+	}
+	return s;
+}
+
+
+
+bool Terminal::Mouse(MOUSE_TYPE type, MOUSE_BUTTON button, bool captured, int r, int c, unsigned mod, int rows, int cols)
+{
+	unsigned flags = MouseFlags();
+
+	if ( !  (
+			( flags & Emulator::MF_1003 ) ||
+			( flags & Emulator::MF_1002 ) && (type == MOUSE_PRESS || type == MOUSE_RELEASE || type == MOUSE_MOVE && captured) ||
+			( flags & Emulator::MF_1000 ) && (type == MOUSE_PRESS || type == MOUSE_RELEASE) ||
+			( flags & Emulator::MF_9    ) && type == MOUSE_PRESS 
+		)
+	) return false;
+	
+	int bt = button;
+
+	if (type == MOUSE_RELEASE) 
+		bt = 3;
+	else 
+		if (type == MOUSE_MOVE) 
+			bt |= 32;
+	
+
+	//4=Shift, 8=Meta, 16=Control
+	if (mod & KM_SHIFT) bt |= 4;
+	if (mod & KM_META) bt |= 8;	
+	if (mod & KM_CTRL) bt |= 16;
+	
+	if (r>=rows) r = rows-1;
+	if (c>=cols) c = cols-1;
+	
+	if (r<0) r = 0;
+	if (c<0) c = 0;
+	
+	r++;
+	c++;
+
+	bt += 32;
+	
+	char buf[0x100] = "\x1b[";
+	char *s = buf + 2;
+	
+	if ( flags & Emulator::MF_1015 ) //URXVT
+	{
+		s = positive_to_char_decimal<int>(bt, s);
+		*(s++) = ';';
+		s = positive_to_char_decimal<int>(c, s);
+		*(s++) = ';';
+		s = positive_to_char_decimal<int>(r, s);
+		*(s++) = 'M';
+	} else {
+		r += 32;
+		c += 32;
+	
+		*(s++) = 'M';
+		*(s++) =  bt;
+	
+	
+		if ( flags & Emulator::MF_1005 ) { //utf8
+			s = to_utf8(s, c);
+			s = to_utf8(s, r);
+		} else 
+		if ( flags & Emulator::MF_1006 ) { //SGR_EXT_MODE_MOUSE 1006
+			//...
+			return false;
+		} else {
+			if (r>255) r = 255;
+			if (c>255) c = 255;
+			*(s++) = c;
+			*(s++) = r;
+		}
+	}
+	
+	Output(buf, s - buf);
+	
+	return true;
 }
 
 
@@ -322,6 +468,12 @@ void Terminal::Output(const char* s, int size)
 	outQueue.Put(s, size);
 	_outputCond.Signal();
 }
+
+void Terminal::Output(const char* s)
+{
+	Output(s, strlen(s));
+}
+
 
 inline void Terminal::OutAppendUnicode(unicode_t c)
 {
@@ -368,6 +520,12 @@ void Terminal::UnicodeOutput(const unicode_t *s, int size)
 }
 
 
+unsigned Terminal::MouseFlags()
+{
+	MutexLock lock(&_inputMutex);
+	return _emulator.MouseFlags();
+}
+
 void Terminal::TerminalReset(bool clearScreen)
 {
 	MutexLock lock(&_inputMutex);
@@ -383,8 +541,8 @@ void Terminal::TerminalPrint(const unicode_t *str, unsigned fg, unsigned bg)
 #include <stdarg.h>
 
 
-//#define  DBG dbg_printf
-#define  DBG printf
+#define  DBG dbg_printf
+//#define  DBG printf
 
 
 void* TerminalInputThreadFunc(void *data)

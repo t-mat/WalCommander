@@ -44,6 +44,12 @@
 SearchParams textSearchParams;
 ReplaceEditParams textReplaceParams;
 
+//for t-emulator
+bool EmulatorThreadSignal(int data) 
+{
+	return WinThreadSignal(data);
+}
+
 void SetCommonSearchParams(const unicode_t *searchString, bool sens)
 {
 	if (searchString && searchString[0])
@@ -169,7 +175,8 @@ NCWin::NCWin()
 	_editor(this),
 	_ehWin(this, &_editor),
 	_execId(-1),
-	_shiftSelectType(-1)
+	_shiftSelectType(-1),
+	_savedPrevMode(NOMODE)
 {
 	_execSN[0]=0;
 	
@@ -410,6 +417,23 @@ if (wcmConfig.showToolBar) _toolBar.Show();
 	}
 	_mode=m;
 	RecalcLayouts();
+}
+
+void NCWin::ShowTerminal(MODE savedMode)
+{
+	if (_mode == TERMINAL) return;
+	_savedPrevMode = savedMode;
+	SetMode(TERMINAL);
+}
+
+bool NCWin::PopTerminalMode()
+{
+	if (_mode != TERMINAL || _savedPrevMode == NOMODE)
+		return false;
+		
+	SetMode(_savedPrevMode);
+	_savedPrevMode = NOMODE;
+	return true;
 }
 
 void NCWin::ExecuteFile()
@@ -675,8 +699,10 @@ void NCWin::StartExecute(const unicode_t *cmd, FS *fs,  FSPath &path)
 #ifdef _WIN32
 	_history.Reset();
 
-	if (_terminal.Execute(this, 1, cmd, 0, fs->Uri(path).GetUnicode()))
+	if (_terminal.Execute(this, 1, cmd, 0, fs->Uri(path).GetUnicode())) 
+	{
 		SetMode(TERMINAL);
+	}
 
 
 #else
@@ -686,7 +712,7 @@ void NCWin::StartExecute(const unicode_t *cmd, FS *fs,  FSPath &path)
 	if (!pref) pref = empty;
 
 	_terminal.TerminalReset();
-	unsigned fg = 0xB;
+	unsigned fg = 0xE;
 	unsigned bg = 0;
 	static unicode_t newLine[] = {'\n',0};
 	_terminal.TerminalPrint(newLine, fg, bg);
@@ -708,6 +734,7 @@ void NCWin::StartExecute(const unicode_t *cmd, FS *fs,  FSPath &path)
 	}
 	_terminal.Execute(this, 1, cmd, (sys_char_t*)path.GetString(sys_charset_id));
 	SetMode(TERMINAL);
+	_terminal.MouseEnable();
 #endif
 	ReturnToDefaultSysDir(); //!!!
 }
@@ -1142,10 +1169,10 @@ void NCWin::CtrlEnter()
 	{
 		const unicode_t *p = _panel->GetCurrentFileName();
 		bool spaces = StrHaveSpace(p);
-		if (spaces) _edit.Insert('"');
-		_edit.Insert(p);
-		if (spaces) _edit.Insert('"');
-		_edit.Insert(' ');
+		if (spaces) _edit.InsertText('"');
+		_edit.InsertText(p);
+		if (spaces) _edit.InsertText('"');
+		_edit.InsertText(' ');
 	}
 }
 
@@ -1157,12 +1184,12 @@ void NCWin::PastePanelPath( PanelWin* p, bool AddTrailingSpace )
 	const unicode_t *str = uri.GetUnicode();
 	bool spaces = StrHaveSpace(str);
 
-	if (spaces) _edit.Insert('"');
-	_edit.Insert(str);
-	if (spaces) _edit.Insert('"');
+	if (spaces) _edit.InsertText('"');
+	_edit.InsertText(str);
+	if (spaces) _edit.InsertText('"');
 
 	if (AddTrailingSpace) 
-		_edit.Insert(' ');
+		_edit.InsertText(' ');
 }
 
 void NCWin::CtrlF()
@@ -1173,10 +1200,10 @@ void NCWin::CtrlF()
 		FSString uri = _panel->UriOfCurrent();
 		const unicode_t *str = uri.GetUnicode();
 		bool spaces = StrHaveSpace(str);
-		if (spaces) _edit.Insert('"');
-		_edit.Insert(str);
-		if (spaces) _edit.Insert('"');
-		_edit.Insert(' ');
+		if (spaces) _edit.InsertText('"');
+		_edit.InsertText(str);
+		if (spaces) _edit.InsertText('"');
+		_edit.InsertText(' ');
 	}
 }
 
@@ -1578,7 +1605,7 @@ void NCWin::ExecNoTerminalProcess(unicode_t *p)
 	if (!pref) pref = empty;
 
 	_terminal.TerminalReset();
-	unsigned fg = 0xB;
+	unsigned fg = 0xF;
 	unsigned bg = 0;
 	static unicode_t newLine[] = {'\n',0};
 	_terminal.TerminalPrint(newLine, fg, bg);
@@ -1734,8 +1761,31 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 	{
 		if (!pressed) return false;
 
-		if (_edit.IsBoxOpened() && pEvent->Key()!= VK_RETURN) return false;
+		if (_edit.IsBoxOpened())
+		{
+			if (pEvent->Char()>=0x20) 
+				return false;
+				
+			switch (pEvent->Key()) {
+			case VK_UP:
+			case VK_DOWN:
+			case VK_LEFT:
+			case VK_RIGHT:
+			case VK_NEXT:
+			case VK_PRIOR:
+			
+			case VK_LCONTROL:
+			case VK_RCONTROL:
+			case VK_LSHIFT:
+			case VK_RSHIFT:
+//			case VK_LMENU:
+//			case VK_RMENU:
 
+				return false;
+			default:
+				_edit.CloseBox();
+			};
+		}
 
 		if (pEvent->Key() == VK_O && (pEvent->Mod() & KM_CTRL))
 		{
@@ -2051,6 +2101,12 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 #endif
 		
 		switch (fullKey) {
+		
+		case FC(VK_O, KM_CTRL):
+			if (pressed && PopTerminalMode()) 
+				return true;
+			break;
+			
 		case FC(VK_INSERT, KM_SHIFT): if (pressed) _terminal.Paste(); return true;
 #ifdef _WIN32
 		case FC(VK_C, KM_ALT | KM_CTRL):
@@ -2077,7 +2133,7 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 #ifdef _WIN32
 		_terminal.Key(pEvent);
 #else
-		_terminal.Key(pEvent->Key(), pEvent->Char());
+		_terminal.Key(pEvent->Key(), pEvent->Char(), pEvent->Mod());
 #endif
 		return true;
 	} else 
@@ -2087,6 +2143,8 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 		if (!pressed) return false;
 		
 		switch (fullKey) {
+		
+		case FC(VK_O, KM_CTRL):	ShowTerminal(_mode); break;
 
 		case VK_F4:
 		case VK_F10:
@@ -2126,6 +2184,8 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 		if (!pressed) return false;
 		
 		switch (fullKey) {
+		
+		case FC(VK_O, KM_CTRL): ShowTerminal(_mode); break;
 		
 		case VK_F3:
 		case VK_F10:
@@ -2174,6 +2234,9 @@ void NCWin::ThreadStopped(int id, void* data)
 	SetMode(PANEL);
 	_leftPanel.Reread();
 	_rightPanel.Reread();
+#ifndef _WIN32	
+	_terminal.MouseDisable(); //!
+#endif
 }
 
 bool NCWin::Command(int id, int subId, Win *win, void *data)

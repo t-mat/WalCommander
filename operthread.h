@@ -6,8 +6,16 @@
 #ifndef OPERTHREAD_H
 #define OPERTHREAD_H
 
+#ifdef CONSOLE
+#define NCDialogParent Win
+#include "../console/ncdialog.h"
+#else
 #include "ncdialogs.h"
+#endif
+
+
 #include "operwin.h"
+
 
 class OperData {
 	NCDialogParent * volatile parentWin;

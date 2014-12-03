@@ -277,7 +277,8 @@ enum events {
 enum KEYMODFLAG {
 	KM_SHIFT = 0x0001,
 	KM_CTRL = 0x0002,
-	KM_ALT  = 0x0004
+	KM_ALT  = 0x0004,
+	KM_META  = 0x0004
 };
 
 class cevent {

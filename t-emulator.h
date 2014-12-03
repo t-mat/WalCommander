@@ -2,12 +2,11 @@
 #define T_EMULATOR_H
 
 #include "wal.h"
-//#include "swl.h"
 
 
 using namespace wal;
 
-
+//BBFFCCCC
 typedef unsigned TermChar;
 
 
@@ -41,7 +40,7 @@ struct EmulatorScreenPoint {
 };
 
 
-inline void ClearEmulatorLine(TermChar *p, int count, unsigned ch = ' '|0x0F000000)
+inline void ClearEmulatorLine(TermChar *p, int count, unsigned ch = ' '|0x0F00000)
 {
 	for (;count>0; count--) *(p++) = ch;
 }
@@ -87,6 +86,7 @@ struct EmulatorAttr {
 	bool underscore;
 	unsigned fColor;
 	unsigned bColor;
+
 		
 	EmulatorAttr(): 
 		cursorVisible(true),
@@ -103,8 +103,10 @@ struct EmulatorAttr {
 	{		
 		tabSize = 8;
 		bold = blink = inverse = underscore = false;
+		
 		fColor = DEF_FG_COLOR;
 		bColor = DEF_BG_COLOR;
+		
 		G[0]=G[1]=G[2]=G[3]=0;
 		nG = 0;
 		cursorVisible = true;
@@ -113,11 +115,13 @@ struct EmulatorAttr {
 			
 	unsigned Color() 
 	{
-		unsigned color = inverse ?  (fColor<<28) | (bColor<<24) : (fColor<<24) | (bColor<<28);
-		if ((bold || blink) && !inverse)
+		unsigned color = inverse ?  (fColor<<24) | (bColor<<16) : (fColor<<16) | (bColor<<24);
+		
+		if ((bold || blink) && !inverse && fColor < 8)
 		{
-			color |= 0x08000000;
+			color |= 0x080000;
 		}
+		
 		return color;
 	};
 	
@@ -134,6 +138,22 @@ struct EmulatorAttr {
 
 
 class Emulator {
+public:
+
+	
+	enum MOUSE_FLAGS {
+		MF_9 	= 0x0001, //X10_MOUSE
+		MF_1000	= 0x0002, //VT200_MOUSE
+		MF_1001	= 0x0004, //VT200_HIGHLIGHT_MOUSE 1001
+		MF_1002	= 0x0008, //BTN_EVENT_MOUSE 1002
+		MF_1003	= 0x0010, //ANY_EVENT_MOUSE 1003
+		MF_1005 = 0x0020, //EXT_MODE_MOUSE 1005
+		MF_1006 = 0x0040, //SGR_EXT_MODE_MOUSE 1006
+		MF_1015 = 0x0080 //URXVT_EXT_MODE_MOUSE 1015
+	};
+
+
+protected:
 
 	struct Cursor {
 		int row;
@@ -183,6 +203,8 @@ class Emulator {
 	
 	EmulatorAttr _savedAttr;
 	Cursor _savedCursor;
+
+	unsigned _mouseFlags;
 	
 	void ScrollUp(int n);
 	void ScrollDown(int n);
@@ -196,6 +218,7 @@ public:
 	void SetChanged(int n, bool b){ return _clList.Set(n, b); }
 	int SetSize(int r, int c);
 	void AddUnicode(unicode_t ch);
+	unsigned MouseFlags() const { return _mouseFlags; }
 	bool KbIsNormal(){ return _keypad == K_NORMAL; }
 	void AddCh(char ch);
 	

@@ -3,9 +3,9 @@
 #include <winsock2.h>
 #endif
 
+#include "ncdialogs.h"
 #include "sftpdlg.h"
 
-#include "ncdialogs.h"
 #include "operthread.h" //для carray_cat
 #include "charsetdlg.h"
 #include "ltext.h"

@@ -549,7 +549,7 @@ private:
 protected:
 	void OpenBox();
 	void RefreshBox();
-	void CloseBox();
+	
 	bool IsEditLine(Win *w) const { return w == &_edit; }
 
 public:
@@ -567,8 +567,8 @@ public:
 
 	carray<unicode_t> GetText();
 	void SetText(const unicode_t *txt, bool mark = false);
-	void Insert(unicode_t t);
-	void Insert(const unicode_t *txt);
+	void InsertText(unicode_t t);
+	void InsertText(const unicode_t *txt);
 	int GetCursorPos(){ return _edit.GetCursorPos(); }
 	void SetCursorPos(int c, bool mark = false){ _edit.SetCursorPos(c, mark); }
 
@@ -580,6 +580,7 @@ public:
 	void * ItemData(int n);
 	void MoveCurrent(int n);
 	bool IsBoxOpened(){ return _box.ptr()!=0; }
+	void CloseBox();
 	virtual bool OnOpenBox();
 	virtual void OnCloseBox();
 	

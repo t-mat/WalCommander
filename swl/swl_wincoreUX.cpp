@@ -494,9 +494,26 @@ static void DoKeyEvent(int type, Win *w, KeySym ks, unsigned km,  unicode_t ch)
 	case XK_x: ks = XK_X; break;
 	case XK_y: ks = XK_Y; break;
 	case XK_z: ks = XK_Z; break;
-	}
 	
+	case XK_KP_Left:	ks = XK_Left;	break;
+	case XK_KP_Right:	ks = XK_Right; break;
+	case XK_KP_Up:		ks = XK_Up; break;
+	case XK_KP_Down:	ks = XK_Down;	break;
+	case XK_KP_Prior:	ks = XK_Prior; break;
+	case XK_KP_Next:	ks = XK_Next;	break;
+	case XK_KP_Home:	ks = XK_Home; break;
+	case XK_KP_End:		ks = XK_End; break;
+	case XK_KP_Insert:	ks = XK_Insert; break;
+	case XK_KP_Delete:	ks = XK_Delete; break;
+	
+	case XK_KP_Enter:	ks = XK_Return; break;
+	
+	case XK_ISO_Left_Tab:	ks = XK_Tab; break;
+	
+	}
 
+//	printf("KEY-%x ks=%x (%s)\n", ch, (int)ks, (km &KM_SHIFT) != 0 ? "shift" : "");	
+	
 	cevent_key ev(type, ks , km, 1, ch); 
 
 	if (w->Type()!=Win::WT_MAIN && ChildKeyRecursive(w->Parent(), w, &ev))

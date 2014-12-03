@@ -262,7 +262,8 @@ bool VListWin::EventMouse(cevent_mouse* pEvent)
 	}
 
 	int n = (pEvent->Point().y - listRect.top)/this->itemHeight + first;
-	
+
+		
 	if (pEvent->Type() == EV_MOUSE_WHEEL) 
 	{
 		if (pEvent->Delta() > 0) 
@@ -280,6 +281,7 @@ bool VListWin::EventMouse(cevent_mouse* pEvent)
 			MoveFirst(first + n); 
 			return true;
 		}
+
 		return true;
 	}
 

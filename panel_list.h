@@ -5,7 +5,7 @@
 #ifndef PANEL_LIST_H
 #define PANEL_LIST_H
 
-#include "swl.h"
+//#include "swl.h"
 #include "vfs.h"
 #include "vfs-uri.h"
 

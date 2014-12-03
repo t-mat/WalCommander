@@ -118,6 +118,7 @@ public:
 
 private:
 	int SetSize(int r, int c);
+	unsigned MouseFlags();
 public:
 
 	TermChar* Get(int n){ return _emulator.Get(n); } //need lock
@@ -127,11 +128,18 @@ public:
 
 	void Output(const char c);
 	void Output(const char* s, int size);
+	void Output(const char* s);
+	
 	void UnicodeOutput(const unicode_t c);
 	void UnicodeOutput(const unicode_t *s, int size);
 	Shell& GetShell(){ return _shell; }
 
-	void Key(unsigned key, unsigned ch);
+	void Key(unsigned key, unsigned ch, unsigned mod);
+	
+	enum MOUSE_TYPE { MOUSE_PRESS, MOUSE_RELEASE, MOUSE_MOVE };
+	enum MOUSE_BUTTON { NO_BUTTON = 0, LEFT=0, CENTER=1, RIGHT=2, WHEEL_FORW=64, WHEEL_BACK=65 };
+	
+	bool Mouse(MOUSE_TYPE, MOUSE_BUTTON, bool captured, int r, int c, unsigned mod, int rows, int cols);
 
 	void TerminalReset(bool clearScreen = false);
 	void TerminalPrint(const unicode_t *str, unsigned fg, unsigned bg);

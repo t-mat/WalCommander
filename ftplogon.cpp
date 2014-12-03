@@ -1,6 +1,6 @@
+#include "ncdialogs.h"
 #include "ftplogon.h"
 
-#include "ncdialogs.h"
 #include "operthread.h" //для carray_cat
 #include "charsetdlg.h"
 #include "ltext.h"

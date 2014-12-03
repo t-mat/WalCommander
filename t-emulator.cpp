@@ -1,5 +1,8 @@
 #include "t-emulator.h"
-#include <swl.h>
+//#include <swl.h>
+
+extern bool EmulatorThreadSignal(int data);
+
 
 static unicode_t decGraphic[]={
 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 
@@ -64,7 +67,8 @@ enum STATES {
 	ST_G1_CHSET,
 	ST_G2_CHSET,
 	ST_G3_CHSET,
-	ST_DECSTR //esc!
+	ST_DECSTR, //esc!
+	ST_STRING_TERM //esc '\'
 };
 
 
@@ -80,6 +84,7 @@ void Emulator::ResetState()
 	_keypad = K_NORMAL;
 	_wrap = true;
 	_N.Reset();
+	_mouseFlags = 0;
 };
 
 #define INIT_ROWS 25
@@ -87,7 +92,9 @@ void Emulator::ResetState()
 
 Emulator::Emulator()
 :	_screen0(1024, INIT_COLS, &_clList), _screen1(INIT_ROWS, INIT_COLS, &_clList), _screen(&_screen0),
-	_rows(INIT_ROWS), _cols(INIT_COLS), _wrap(true)
+	_rows(INIT_ROWS), _cols(INIT_COLS), _wrap(true), 
+	_mouseFlags(0)
+
 {
 	ResetState();
 	_cursor.row = _rows-1;
@@ -116,7 +123,7 @@ int Emulator::SetSize(int r, int c)
 	_clList.SetAll(true);
 	_cursor.row = _rows-cdelta;
 	
-	WinThreadSignal(1);
+	EmulatorThreadSignal(1);
 	return 0;
 }
 
@@ -124,13 +131,11 @@ void Emulator::ScrollUp(int n)
 {
 	int b = _scT==0 ? _screen->Rows()-1 : _rows - _scT - 1;
 	int a = _rows - _scB - 1 ;
-//printf("a=%i b=%i\n", a, b);	
 	_screen->ScrollUp(a, b, n, _attr.Color() + ' ');
 }
 
 void Emulator::ScrollDown(int n)
 {
-//printf("Emulator::ScrollDown (%i)\n", n);
 	int b = _scT==0 ? _screen->Rows()-1 : _rows - _scT - 1;
 	int a = _rows - _scB - 1;
 	_screen->ScrollDown(a, b, n, _attr.Color() + ' ');
@@ -201,7 +206,6 @@ void Emulator::CR()
 void Emulator::LF()
 {
 	if (_cursor.row == _scB && _wrap) {
-//printf("LF scroll top = %i, bottom = %i, row = %i\n", _scT, _scB, _cursor.row);
 		ScrollUp(1);
 	} else
 		if (_cursor.row < _rows+1) {
@@ -244,7 +248,6 @@ void Emulator::Tab()
 void Emulator::RI()
 {
 	if (_cursor.row == _scT) {
-//printf("RI scroll top = %i, bottom = %i, row = %i\n", _scT, _scB, _cursor.row);
 		ScrollDown(1);
 	} else
 		if (_cursor.row > 0) {
@@ -256,7 +259,6 @@ void Emulator::RI()
 
 void Emulator::IND()
 {
-//printf("IND\n");
 	LF(); //temp
 }
 
@@ -301,25 +303,37 @@ void Emulator::EraseDisp(int mode)
 
 void Emulator::Append(char ch)
 {
+
+//printf( ch>= 0x20 ? "%c" : "<%x>", int(ch));
+
+	//как оказалось спец символы должны работать даже внутри esc последовательности
+	switch (ch) {
+	case 0:    return; //NUL - ignore
+	case 1:    return;
+	case 5:    return; //ENQ
+	case 7:
+		if (_state != ST_TP_TEXT ) return; //bell
+		break;
+			
+	case 8:    //backspace
+		if (_cursor.col>0) {
+			_cursor.col--;
+			Changed(_cursor.row);
+		}
+		return; 
+			
+	case 9:	   Tab(); return;
+	case 0xA:  LF(); return;
+	case 0xB:  LF(); return;
+	case 0xC:  return; //FF
+	case 0xD:  CR(); return;
+	}
+
+
 	switch (_state) {
 	case ST_NORMAL:
         	switch (ch) {
-		case 0:    return; //NUL - ignore
-		case 1:    return;
-		case 5:    return; //ENQ
-		case 7:    return; //bell
-		case 8:    //backspace
-			if (_cursor.col>0) {
-				_cursor.col--;
-				Changed(_cursor.row);
-			}
-			return; 
-			
-		case 9:	   Tab(); return;
-		case 0xA:  LF(); return;
-		case 0xB:  LF(); return;
-		case 0xC:  return; //FF
-		case 0xD:  CR(); return;
+        	
 		case 0x1B: _state = ST_ESCAPE; return;
 		default:
 			AddCh(ch);
@@ -347,8 +361,7 @@ void Emulator::Append(char ch)
 		
 		case '7': _savedCursor = _cursor; break;
 		case '8': RestoreCursor(); break;
-						
-		case 'C': Reset(true); break;
+		
 		case 'D': IND(); break;
 		case 'E': CR(); LF(); break;
 		case 'H': 	DBG("DBG: esc H (HTS)\n"); break;
@@ -360,6 +373,8 @@ void Emulator::Append(char ch)
 		case 'W': 	DBG("DBG: esc W (EPA)\n"); break;
 		case 'X': 	DBG("DBG: esc X (SOS)\n"); break;
 		case 'Z': 	DBG("DBG: esc Z (Terminal ID (abs))\n"); break;
+		
+		case 'c': Reset(true); break;
 		
 		default:
 			DBG("unknown esc'%c'\n",ch);
@@ -388,6 +403,23 @@ void Emulator::Append(char ch)
 		if (ch == 7) {
 			//!!! set text parameter (_N[0], _TXT)
 		}
+		
+		if (ch == 27)
+		{
+			_state = ST_STRING_TERM;
+			return;
+		}
+		
+		break;
+		
+	case ST_STRING_TERM:
+		if (ch != '\\')
+		{
+			_TXT.append(27);
+			_TXT.append(ch);
+			_state = ST_TP_TEXT; //go back
+		}
+		//! string term
 		break;
 
 
@@ -430,24 +462,64 @@ void Emulator::Append(char ch)
 					case 25: _attr.blink = false; break;
 					case 27: _attr.inverse = false; break;
 					//case 28: set visible
+					
+					
 					case 30: _attr.fColor = 0; break;
-					case 31: _attr.fColor = 4; break;
+					case 31: _attr.fColor = 1; break;
 					case 32: _attr.fColor = 2; break;
-					case 33: _attr.fColor = 6; break;
-					case 34: _attr.fColor = 1; break;
+					case 33: _attr.fColor = 3; break;
+					case 34: _attr.fColor = 4; break;
 					case 35: _attr.fColor = 5; break;
-					case 36: _attr.fColor = 3; break;
+					case 36: _attr.fColor = 6; break;
 					case 37: _attr.fColor = 7; break;
+					case 38: 
+						if (i + 2 <= _N.count && _N[i+1] == 5)
+						{
+							i += 2;
+							_attr.fColor = _N[i] & 0xFF;
+						}
+						
+						break;
+						
 					case 39: _attr.fColor = DEF_FG_COLOR; break;
+					
 					case 40: _attr.bColor = 0; break;
-					case 41: _attr.bColor = 4; break;
+					case 41: _attr.bColor = 1; break;
 					case 42: _attr.bColor = 2; break;
-					case 43: _attr.bColor = 6; break;
-					case 44: _attr.bColor = 1; break;
+					case 43: _attr.bColor = 3; break;
+					case 44: _attr.bColor = 4; break;
 					case 45: _attr.bColor = 5; break;
-					case 46: _attr.bColor = 3; break;
+					case 46: _attr.bColor = 6; break;
 					case 47: _attr.bColor = 7; break;
+					case 48:
+						if (i + 2 <= _N.count && _N[i+1] == 5)
+						{
+							i += 2;
+							_attr.bColor = _N[i] & 0xFF;
+						}
+						
+						break;
+					
 					case 49: _attr.bColor = DEF_BG_COLOR; break;
+					
+					case 90: _attr.fColor = 0+8; break; //→ Set foreground color to Black. 
+					case 91: _attr.fColor = 1+8; break; //→ Set foreground color to Red. 
+					case 92: _attr.fColor = 2+8; break; //→ Set foreground color to Green. 
+					case 93: _attr.fColor = 3+8; break; //→ Set foreground color to Yellow. 
+					case 94: _attr.fColor = 4+8; break; //→ Set foreground color to Blue. 
+					case 95: _attr.fColor = 5+8; break; //→ Set foreground color to Magenta. 
+					case 96: _attr.fColor = 6+8; break; //→ Set foreground color to Cyan. 
+					case 97: _attr.fColor = 7+8; break; //→ Set foreground color to White. 
+					
+					case 100: _attr.bColor = 0+8; break; //→ Set background color to Black. 
+					case 101: _attr.bColor = 1+8; break; //→ Set background color to Red. 
+					case 102: _attr.bColor = 2+8; break; //→ Set background color to Green. 
+					case 103: _attr.bColor = 3+8; break; //→ Set background color to Yellow. 
+					case 104: _attr.bColor = 4+8; break; //→ Set background color to Blue. 
+					case 105: _attr.bColor = 5+8; break; //→ Set background color to Magenta. 
+					case 106: _attr.bColor = 6+8; break; //→ Set background color to Cyan. 
+					case 107: _attr.bColor = 7+8; break; //→ Set background color to White.
+					
 					default: 
 						DBG("unknown %i in esc[%im\n",_N[i], _N[i]);
 					}
@@ -507,7 +579,6 @@ void Emulator::Append(char ch)
 
 		case 'K': // clear line
 			{
-//printf("Clear line (%i)\n", _N[0]);
 				int from  = (_N[0] > 0) ? 0 : _cursor.col;
 				int to = (_N[0] != 1) ? _cols : _cursor.col;
 				_screen->SetLineChar( _rows - _cursor.row - 1, from, to-from, _attr.Color() + ' ');
@@ -516,7 +587,6 @@ void Emulator::Append(char ch)
 			
 		case 'L': // ins n lines (IL)
 			{
-//printf("IL\n");
 				int count = _N[0]?_N[0]:1;
 				_screen->ScrollDown(_rows - _scB - 1, _rows - _cursor.row - 1,  count, _attr.Color() + ' ');
 			}
@@ -524,7 +594,6 @@ void Emulator::Append(char ch)
 			
 		case 'M': // delete n lines (DL)
 			{
-//printf("DL\n");	
 				int count = _N[0]?_N[0]:1;
 				_screen->ScrollUp(_rows - _scB - 1, _rows - _cursor.row - 1, count, _attr.Color() + ' ');
 			}
@@ -534,7 +603,6 @@ void Emulator::Append(char ch)
 						
 		case 'P': //Delete chars
 			{
-//printf("DC-\n");				
 				int count = _N[0]?_N[0]:1;
 				_screen->DeleteLineChar( _rows - _cursor.row - 1, _cursor.col, count, _attr.Color() + ' ');
 			}
@@ -550,7 +618,6 @@ void Emulator::Append(char ch)
 			
 		case 'X': //erase n chars (ECH)
 			{
-//printf("ECH\n");				
 				_screen->SetLineChar(_rows - _cursor.row - 1, _cursor.col,  _N[0]?_N[0]:1, _attr.Color() + ' ');
 			}
 			break;
@@ -573,6 +640,16 @@ void Emulator::Append(char ch)
 						_wrap = true; 
 						break;
 						
+					case 9: _mouseFlags |= MF_9; break;
+					case 1000: _mouseFlags |= MF_1000; break;
+					case 1001: _mouseFlags |= MF_1001; break;
+					case 1002: _mouseFlags |= MF_1002; break;
+					case 1003: _mouseFlags |= MF_1003; break;
+					case 1005: _mouseFlags |= MF_1005; break;
+					case 1006: _mouseFlags |= MF_1006; break;
+					case 1015: _mouseFlags |= MF_1015; break;
+						
+						
 					case 12: _attr.cursorBlinked = true; break; 
 					case 25: _attr.cursorVisible = true; break;
 					case 1049:
@@ -582,7 +659,7 @@ void Emulator::Append(char ch)
 					case 47: 
 						_screen = &_screen1;
 						_clList.SetAll(true);
-						WinThreadSignal(1);
+						EmulatorThreadSignal(1);
 						break;
 					default:
 						DBG("unknown %i in esc[?%ih\n", _N[i], _N[i]);
@@ -598,6 +675,16 @@ void Emulator::Append(char ch)
 					case 7: 
 						_wrap = false; 
 						break;
+
+					case 9: _mouseFlags	&= ~MF_9; break;
+					case 1000: _mouseFlags	&= ~MF_1000; break;
+					case 1001: _mouseFlags	&= ~MF_1001; break;
+					case 1002: _mouseFlags	&= ~MF_1002; break;
+					case 1003: _mouseFlags	&= ~MF_1003; break;
+					case 1005: _mouseFlags	&= ~MF_1005; break;
+					case 1006: _mouseFlags	&= ~MF_1006; break;
+					case 1015: _mouseFlags	&= ~MF_1015; break;
+												
 						
 					case 12: _attr.cursorBlinked = false; break; 
 					case 25: _attr.cursorVisible = false; break;
@@ -608,7 +695,7 @@ void Emulator::Append(char ch)
 					case 47: 
 						_screen = &_screen0;
 						_clList.SetAll(true);
-						WinThreadSignal(1);
+						EmulatorThreadSignal(1);
 						break;
 					
 					default:
@@ -704,9 +791,6 @@ void EmulatorScreen::SetSize(int r, int c)
 	
 void EmulatorScreen::ScrollUp(int a, int b, int count, unsigned ch) //a<=b
 {
-
-//printf("EmulatorScreen::ScrollUp a=%i, b=%i count=%i\n", a, b, count);
-
 	a = CLN(a);
 	b = CLN(b);
 	if (a>b) return;
@@ -733,7 +817,6 @@ void EmulatorScreen::ScrollUp(int a, int b, int count, unsigned ch) //a<=b
 	
 void EmulatorScreen::ScrollDown(int a, int b, int count, unsigned ch) //a<=b
 {
-//printf("EmulatorScreen::ScrollDown a=%i, b=%i count=%i\n", a, b, count);
 	a = CLN(a);
 	b = CLN(b);
 	if (a>b) return;
@@ -756,8 +839,6 @@ void EmulatorScreen::ScrollDown(int a, int b, int count, unsigned ch) //a<=b
 
 void EmulatorScreen::SetLineChar(int ln, int c, int count, unsigned ch)
 {
-//printf("EmulatorScreen::SetLineChar(ln %i, c %i, count %i, ch=%X\n",ln, c, count, ch );		
-
 	if (ln >= rows || ln<0 || c>=cols || c<0) 
 	{
 		return;
@@ -771,7 +852,6 @@ void EmulatorScreen::SetLineChar(int ln, int c, int count, unsigned ch)
 void EmulatorScreen::SetLineChar(int ln, int c, unsigned ch)
 {
 	if (ln >= rows || ln<0 || c>=cols || c<0) return;
-//printf("Set(%i, %i) '%c'\n", ln, c, ch);	
 	list[ln][c] = ch;
 	SetCL(ln);
 }

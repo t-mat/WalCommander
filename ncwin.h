@@ -181,7 +181,7 @@ public:
 
 class NCWin: public NCDialogParent {
 	friend class PanelWin;
-	enum MODE { PANEL, TERMINAL, VIEW, EDIT };
+	enum MODE { PANEL, TERMINAL, VIEW, EDIT, NOMODE };
 private:
 	Layout	_lo,
 		_lpanel,
@@ -234,6 +234,10 @@ private:
 			RecalcLayouts();
 		}
 	}
+	
+	MODE _savedPrevMode;
+	void ShowTerminal(MODE savedMode);
+	bool PopTerminalMode();
 
 	void PanelEnter();
 
