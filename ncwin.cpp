@@ -1767,6 +1767,9 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 				return false;
 				
 			switch (pEvent->Key()) {
+			
+			case VK_ESCAPE:
+			
 			case VK_UP:
 			case VK_DOWN:
 			case VK_LEFT:
@@ -1778,6 +1781,7 @@ bool NCWin::OnKeyDown(Win *w, cevent_key* pEvent, bool pressed)
 			case VK_RCONTROL:
 			case VK_LSHIFT:
 			case VK_RSHIFT:
+			
 //			case VK_LMENU:
 //			case VK_RMENU:
 

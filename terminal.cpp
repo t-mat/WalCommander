@@ -380,20 +380,6 @@ bool Terminal::Mouse(MOUSE_TYPE type, MOUSE_BUTTON button, bool captured, int r,
 		)
 	) return false;
 	
-	int bt = button;
-
-	if (type == MOUSE_RELEASE) 
-		bt = 3;
-	else 
-		if (type == MOUSE_MOVE) 
-			bt |= 32;
-	
-
-	//4=Shift, 8=Meta, 16=Control
-	if (mod & KM_SHIFT) bt |= 4;
-	if (mod & KM_META) bt |= 8;	
-	if (mod & KM_CTRL) bt |= 16;
-	
 	if (r>=rows) r = rows-1;
 	if (c>=cols) c = cols-1;
 	
@@ -402,40 +388,66 @@ bool Terminal::Mouse(MOUSE_TYPE type, MOUSE_BUTTON button, bool captured, int r,
 	
 	r++;
 	c++;
-
-	bt += 32;
+	
+	int bt = button;
+	//4=Shift, 8=Meta, 16=Control
+	if (mod & KM_SHIFT) bt |= 4;
+	if (mod & KM_META) bt |= 8;	
+	if (mod & KM_CTRL) bt |= 16;
 	
 	char buf[0x100] = "\x1b[";
 	char *s = buf + 2;
 	
-	if ( flags & Emulator::MF_1015 ) //URXVT
-	{
+	if (type == MOUSE_MOVE) bt |= 32;
+	
+	if ( flags & Emulator::MF_1006 ) //SGR MODE 1006
+	{ 
+		*(s++) = '<';
+		
 		s = positive_to_char_decimal<int>(bt, s);
 		*(s++) = ';';
 		s = positive_to_char_decimal<int>(c, s);
 		*(s++) = ';';
 		s = positive_to_char_decimal<int>(r, s);
-		*(s++) = 'M';
-	} else {
-		r += 32;
-		c += 32;
+		
+		if (type == MOUSE_RELEASE)
+			*(s++) = 'm';
+		else
+			*(s++) = 'M';
+	} 
+	else 
+	{
+		if (type == MOUSE_RELEASE) bt |= 3;
+
+		bt += 32;
 	
-		*(s++) = 'M';
-		*(s++) =  bt;
-	
-	
-		if ( flags & Emulator::MF_1005 ) { //utf8
-			s = to_utf8(s, c);
-			s = to_utf8(s, r);
-		} else 
-		if ( flags & Emulator::MF_1006 ) { //SGR_EXT_MODE_MOUSE 1006
-			//...
-			return false;
+		if ( flags & Emulator::MF_1015 ) //URXVT
+		{
+			s = positive_to_char_decimal<int>(bt, s);
+			*(s++) = ';';
+			s = positive_to_char_decimal<int>(c, s);
+			*(s++) = ';';
+			s = positive_to_char_decimal<int>(r, s);
+			*(s++) = 'M';
 		} else {
-			if (r>255) r = 255;
-			if (c>255) c = 255;
-			*(s++) = c;
-			*(s++) = r;
+			r += 32;
+			c += 32;
+	
+			*(s++) = 'M';
+			*(s++) =  bt;
+	
+			if ( flags & Emulator::MF_1005 ) //utf8
+			{ 
+				s = to_utf8(s, c);
+				s = to_utf8(s, r);
+			} 
+			else  
+			{ //X10 variant
+				if (r>255) r = 255;
+				if (c>255) c = 255;
+				*(s++) = c;
+				*(s++) = r;
+			}
 		}
 	}
 	
