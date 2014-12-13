@@ -7,10 +7,10 @@ inline	int SBigNode::Eq(const char *str) const
 	{
 		const char *s = str;
 		const char *t = a;
-		for ( ;*t && *s == *t; t++,s++) 0;
+		for ( ;*t && *s == *t; t++,s++) { /**/ };
 		if (!*t) return t-a;
 		if (!b[0]) return 0;
-		for (t = b, s = str; *t && *s == *t; t++, s++) 0;
+		for (t = b, s = str; *t && *s == *t; t++, s++) { /**/ };
 		if (!*t) return t-b;
 		return 0;
 	}
@@ -20,11 +20,11 @@ inline bool SBigNode::Eq(const SBigNode &x) const
 	const char *s = a;
 	const char *t = x.a;
 	int i;
-	for (i = 0; *s && *s == *t && i < 16; i++, s++, t++) 0;
+	for (i = 0; *s && *s == *t && i < 16; i++, s++, t++) { /**/ };
 	if (*s != *t) return false;
 	s = b;
 	t = x.b;
-	for (i = 0; *s && *s == *t && i < 16; i++, s++, t++) 0;
+	for (i = 0; *s && *s == *t && i < 16; i++, s++, t++) { /**/ };
 	if (*s != *t) return false;
 	return true;
 }	
@@ -125,7 +125,7 @@ static char * VSearchStr(char *s, char *end, char *cs, int csLen)
 			char *t = s + 1;
 			char *p = cs + 1;
 			int n = csLen - 1;
-			for (;n>0 && *t == *p; t++, p++, n--) 0;
+			for (;n>0 && *t == *p; t++, p++, n--) { /**/ };
 			if (n<=0) return s;
 		}
 	return 0;

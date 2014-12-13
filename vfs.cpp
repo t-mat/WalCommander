@@ -1183,7 +1183,7 @@ int FSSys::StatVfs(FSPath &path, FSStatVfs *vst, int *err, FSCInfo *info)
 	}
 	
 	vst->size = int64(st.f_blocks) * st.f_frsize;
-	vst->avail = int64(st.f_bavail) * st.f_bsize;
+	vst->avail = int64(st.f_bavail) * st.f_frsize; //косяк st.f_bsize;
 	return 0;
 }
 

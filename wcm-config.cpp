@@ -7,7 +7,6 @@
 #include "ncfonts.h"
 #include "ltext.h"
 #include "globals.h"
-#include "bfile.h"
 
 #ifdef _WIN32
 #include "w32util.h"
@@ -807,3 +806,11 @@ bool DoTerminalConfigDialog(NCDialogParent *parent)
 
 	return false;
 }
+
+
+#ifndef _WIN32
+int TerminalBackspaceKey()
+{
+	return wcmConfig.terminalBackspaceKey ? 8 : 127;
+}
+#endif

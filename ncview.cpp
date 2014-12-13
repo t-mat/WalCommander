@@ -1759,7 +1759,7 @@ static void ViewDrawPreparedText(ViewerColors *viewerColors,  wal::GC &gc, int x
 	{
 		char t = *type;
 		int i;
-		for (i=1; i<count && type[i] == t; i++) 0;
+		for (i=1; i<count && type[i] == t; i++) { /**/ };
 		int fg;
 		int bg;
 		switch (t) {

@@ -5,7 +5,6 @@ using namespace wal;
 #include "vfs.h"
 #include "ltext.h"
 #include "globals.h"
-#include "bfile.h"
 
 #ifdef _WIN32
 #include "w32util.h"

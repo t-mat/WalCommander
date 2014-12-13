@@ -4,7 +4,6 @@
 #include "wcm-config.h"
 #include "ltext.h"
 #include "globals.h"
-#include "bfile.h"
 #include "string-util.h"
 #ifdef _WIN32
 #include "w32util.h"
@@ -12,7 +11,7 @@
 
 using namespace wal;
 
-static char verString[] = "Wal Commander v 0.17.1";
+static char verString[] = "Wal Commander v 0.17.2";
 
 #define MIN_WIDTH (500)
 

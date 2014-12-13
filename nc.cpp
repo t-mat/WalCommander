@@ -5,6 +5,8 @@
 #include <Winsock2.h>
 #include "resource.h"
 #include "w32util.h"
+#else
+#include <locale.h>
 #endif
 
 #include "nc.h"

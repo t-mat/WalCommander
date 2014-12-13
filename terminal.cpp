@@ -4,10 +4,17 @@
 
 
 #include "wal.h"
+
+#ifdef CONSOLE
+#include "../console/console.h"
+using namespace console;
+#else
 #include "swl.h"
+#endif
+
 #include "terminal.h"
 #include <termios.h>
-#include "wcm-config.h"
+//#include "wcm-config.h"
 #include <sys/ioctl.h>
 
 #ifdef _WIN32
@@ -21,16 +28,27 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
+
+extern int TerminalBackspaceKey();
+
+//! надо сделать предварительную проверку на наличие posix_openpt
+#define USE_POSIX_OPENPT 
 
 TerminalStream::TerminalStream()
 :	_masterFd(-1)
 {
+
 	char masterName[0x100];
+
+#ifdef USE_POSIX_OPENPT
+	_masterFd = posix_openpt(O_RDWR);
+#else
 	strcpy(masterName, "/dev/ptmx");
+	_masterFd = open(masterName, O_RDWR | O_NDELAY);
+#endif	
 
 	char slaveName[0x100];
-
-	_masterFd = open(masterName, O_RDWR | O_NDELAY);
 
 	if (_masterFd >= 0) 
 	{
@@ -69,113 +87,6 @@ TerminalStream::TerminalStream()
 
 
 	_slaveName = new_sys_str(slaveName);
-}
-
-
-static int WritePipe(int fd, int cmd, ...)
-{
-	ccollect<char*> list;
-
-	va_list ap;
-	va_start(ap, cmd);
-	
-	while (true) 
-	{
-		char *s = va_arg(ap, char*);
-		if (!s) break;
-		list.append(s);
-	}
-	
-	va_end(ap);
-	
-	int ret;
-	char c = cmd;
-	ret = write(fd, &c, sizeof(char)); if (ret<0 || ret != sizeof(char)) return -1;
-	c = list.count();
-	ret = write(fd, &c, sizeof(char)); if (ret<0 || ret != sizeof(char)) return -1;
-	
-	for (int i = 0; i<list.count(); i++)
-	{
-		char *s = list[i];
-		int l = strlen(s)+1;
-		ret = write(fd, s, l); if (ret<0 || ret != l) return -1;
-	}
-	return 0;
-}
-
-static int ReadPipe(int fd, int &cmd, ccollect<carray<char> > &params)
-{
-	char c;
-	int ret;
-	ret = read(fd, &c, sizeof(char)); if (ret<0 || ret != sizeof(char)) return -1;
-	cmd = c;
-	ret = read(fd, &c, sizeof(char)); if (ret<0 || ret != sizeof(char)) return -1;
-	params.clear();
-	
-	int count = c;
-	for (int i = 0; i < count; i++)
-	{
-		ccollect<char> p;
-		while (true) 
-		{
-			ret = read(fd, &c, sizeof(char)); if (ret<0 || ret != sizeof(char)) return -1;
-			p.append(c);
-			if (!c) break;
-		}
-		params.append(p.grab());
-	}
-	
-	return 0;
-}
-
-	
-static void Shell(int in, int out)
-{
-	fcntl(in, F_SETFD, long(FD_CLOEXEC));
-	fcntl(out, F_SETFD, long(FD_CLOEXEC));
-	
-
-	while (true) 
-	{
-		ccollect<carray<char> > pList;
-		int cmd = 0;
-		
-		if (ReadPipe(in, cmd, pList)) exit(1);
-		
-		switch (cmd) {
-		case 1: 
-
-			{
-				pid_t pid = fork();
-				if (!pid) 
-				{
-					static char shell[]="/bin/sh";
-					if (pList.count()) 
-					{
-						const char * params[]={shell, "-c", pList[0].ptr(), NULL};
-						execv(shell, (char **) params);
-						printf("error execute %s\n",shell);
-					} else 
-						printf("internal err (no shall paremeters)\n");
-					
-					exit(1);
-				}
-				char buf[64];
-				sprintf(buf,"%i", int(pid));
-				if (WritePipe(out, 0, buf, (const char*) 0)) exit(1);
-				
-printf ("exec '%s' (%i)\n", pList[0].ptr(), pid);
-
-			}
-			break;
-		default: 
-			if (WritePipe(out, 1, "unknown internal shell command", (const char*)0 )) exit(1);
-			
-			printf("internal err (unknown shell command)\n");
-			
-			break;
-		};
-	}
 }
 
 
@@ -252,14 +163,14 @@ Terminal::Terminal(/*int maxRows*/)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-	int Terminal::SetSize(int r, int c)
-	{
-		_rows = r;
-		_cols = c;
-		_emulator.SetSize(_rows, _cols);
-		_stream.SetSize(r, c);
-		return 0;
-	}
+int Terminal::SetSize(int r, int c)
+{
+	_rows = r;
+	_cols = c;
+	_emulator.SetSize(_rows, _cols);
+	_stream.SetSize(r, c);
+	return 0;
+}
 
 #define ESC "\x1b"
 	
@@ -305,7 +216,7 @@ void Terminal::Key(unsigned key, unsigned ch, unsigned mod)
 	case VK_HOME:	ec = 'H'; if (*m) goto CSI_1_mod; if (_emulator.KbIsNormal()) goto CSI; goto SS3;
 	case VK_END:	ec = 'F'; if (*m) goto CSI_1_mod; if (_emulator.KbIsNormal()) goto CSI; goto SS3;
 
-	case VK_BACK: Output(wcmConfig.terminalBackspaceKey ? 8 : 127); return; //херово конечно без блокировок обращаться, но во время работы терминала конфиг не меняется
+	case VK_BACK: Output(TerminalBackspaceKey()/*wcmConfig.terminalBackspaceKey ? 8 : 127*/); return; //херово конечно без блокировок обращаться, но во время работы терминала конфиг не меняется
 	case VK_DELETE:	Output("\x1b[3"); Output(m); Output('~'); return;
 	case VK_NEXT:	Output("\x1b[6"); Output(m); Output('~'); return;
 	case VK_PRIOR:	Output("\x1b[5"); Output(m); Output('~'); return;

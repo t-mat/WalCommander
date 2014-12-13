@@ -45,7 +45,7 @@ HistCollect* HistGetList(const char *histGroup)
 
 static bool HistStrcmp(const unicode_t *a, const unicode_t *b)
 {
-	for (; *a && *b && *a == *b; a++, b++) 0;
+	for (; *a && *b && *a == *b; a++, b++) { /**/ };
 	
 	while (*a && (*a == ' ' || *a == '\t')) a++;
 	while (*b && (*b == ' ' || *b == '\t')) b++;
@@ -173,7 +173,7 @@ static bool AcEqual(const unicode_t *txt, const unicode_t *element)
 	if (!txt) return true;
 	if (!element) return false;
 
-	for (;*txt && *element && *txt == *element; txt++, element++) 0;
+	for (;*txt && *element && *txt == *element; txt++, element++) { /**/ };
 	return *txt == 0;
 }
 

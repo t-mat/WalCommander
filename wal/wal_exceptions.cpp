@@ -8,12 +8,15 @@
 #include <afx.h>
 #include <Afxwin.h>
 #else
-#ifdef __linux__
+
+#ifdef _WIN32
+	#include <new.h>
+#else
+//#ifdef __linux__
 	#include <new>
 	using namespace std;
-#else
-	#include <new.h>
 #endif
+
 #endif
 
 #include "wal.h"

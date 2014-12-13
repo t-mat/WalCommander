@@ -427,7 +427,7 @@ bool NCVertDialog::EventKeyPost(Win *focusWin, cevent_key* pEvent)
 			return true;			
 		} 
 	}; 
-	 NCDialog::EventKeyPost(focusWin, pEvent);
+	return  NCDialog::EventKeyPost(focusWin, pEvent);
 }
 
 

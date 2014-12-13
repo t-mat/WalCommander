@@ -1,5 +1,7 @@
 
-CFLAGS= -D_FILE_OFFSET_BITS=64 -I /usr/local/include -O3 -I wal -I swl -pthread $(CFLAGS_FREETYPE) #-Wall
+CFLAGS= -Wno-switch -Wno-parentheses -D_FILE_OFFSET_BITS=64 -I /usr/local/include -O3 -I wal -I swl -pthread $(CFLAGS_FREETYPE)
+
+#CFLAGS= -D_FILE_OFFSET_BITS=64 -I /usr/local/include -O3 -I wal -I swl -pthread $(CFLAGS_FREETYPE) #-Wall
 #CFLAGS= -D_FILE_OFFSET_BITS=64 -I /usr/local/include -g -I wal -I swl -pthread $(CFLAGS_FREETYPE) #--pedantic -Wall
 
 include makelib.mk
@@ -11,9 +13,9 @@ LIBS = -L /usr/local/lib -L /usr/X11R6/lib -l stdc++  -l  X11 -l pthread $(LIBSM
 HW = wal/wal_tmpls.h wal/wal.h wal/wal_sys_api.h
 HS = swl/swl.h swl/swl_internal.h swl/swl_layout.h swl/swl_winbase.h swl/swl_wincore.h swl/swl_wincore_internal.h 
 HN = libconf.h nc.h ncwin.h panel.h ncdialogs.h  terminal.h termwin.h ncedit.h shell.h \
- operthread.h operwin.h vfs.h vfspath.h vfs-smb.h vfs-uri.h fileopers.h mfile.h eloadsave.h smblogon.h ext-app.h bfile.h \
+ operthread.h operwin.h vfs.h vfspath.h vfs-smb.h vfs-uri.h fileopers.h mfile.h eloadsave.h smblogon.h ext-app.h \
  wcm-config.h panel_list.h tcp_sock.h vfs-ftp.h ftplogon.h charsetdlg.h vfs-sftp.h sftpdlg.h color-style.h filesearch.h help.h ux_util.h \
- strconfig.h shortcuts.h fontdlg.h ncfonts.h shl.h toolbar.h ncview.h search-dlg.h search-tools.h shell-tools.h t-emulator.h dircalc.h ltext.h \
+ strconfig.h shortcuts.h fontdlg.h ncfonts.h shl.h toolbar.h ncview.h search-dlg.h search-tools.h shell-tools.h t-emulator.h tscreen.h dircalc.h ltext.h \
  dlg-ctrl-l.h nceditline.h config-util.h
 
 OBJS =  wal_tmpls.o \

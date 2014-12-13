@@ -1,7 +1,6 @@
 #ifndef SHL_H
 #define SHL_H
 #include <wal.h>
-#include "bfile.h"
 
 namespace SHL {
 using namespace wal;

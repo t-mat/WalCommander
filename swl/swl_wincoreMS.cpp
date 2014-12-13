@@ -691,7 +691,7 @@ crect Win::Rect()
 	p.x=0;
 	p.y=0;
 	::ClientToScreen((HWND)this->handle, &p);
-	if (type != WS_POPUP && this->parent)
+	if (type != WT_POPUP && this->parent)
 		ScreenToClient(parent->handle, &p);
 	RECT rect;
 	::GetClientRect((HWND)handle,&rect);

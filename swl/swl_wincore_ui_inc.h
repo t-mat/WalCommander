@@ -346,7 +346,7 @@ struct UiSelector {
 	enum {CMPN = 4};
 	unsigned char cmpLev[CMPN];
 	
-	int Cmp(UiSelector &a){ int i=0; for (; i<CMPN && cmpLev[i] == a.cmpLev[i]; i++) 0; return (i >= CMPN) ? 0 : cmpLev[i] < a.cmpLev[i] ? -1 : 1;  };
+	int Cmp(UiSelector &a){ int i=0; for (; i<CMPN && cmpLev[i] == a.cmpLev[i]; i++) { /**/ }; return (i >= CMPN) ? 0 : cmpLev[i] < a.cmpLev[i] ? -1 : 1;  };
 	
 	void AppendObj(int c, int n, bool o)
 	{ 
@@ -502,7 +502,7 @@ void UiRules::Parze(UiParzer &parzer)
 			sel->Parze(parzer);
 			
 			int i = 0;
-			for (; i < selectors.count() && sel->Cmp(*(selectors[i].ptr())) < 0; i++) 0;
+			for (; i < selectors.count() && sel->Cmp(*(selectors[i].ptr())) < 0; i++) { /**/ };
 			if ( i < selectors.count()) 
 				selectors.insert(i, sel);
 			else

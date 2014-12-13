@@ -1,7 +1,6 @@
 #include "ux_util.h"
 
 #ifndef _WIN32
-#include "bfile.h"
 #include <wal.h>
 using namespace wal;
 

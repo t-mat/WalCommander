@@ -296,6 +296,7 @@ bool TerminalWin::GetMarked(ClipboardText &ct)
 		}
 		if (i != n1) ct.Append('\n');
 	}
+	return true;
 }
 
 
