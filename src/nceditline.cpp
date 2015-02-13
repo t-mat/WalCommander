@@ -9,29 +9,31 @@
 #include "string-util.h"
 
 
+typedef ccollect<std::vector<unicode_t>> HistCollect;
+
 static cstrhash<clPtr<HistCollect>> histHash;
 
 
 inline bool HistoryCanSave()
 {
     //return wcmConfig.systemSaveHistory;
-    return false;
+    return true;
 }
 
 inline bool AcEnabled()
 {
     //return wcmConfig.systemAutoComplete;
-    return false;
+    return true;
 }
 
-static std::vector<char> HistSectionName(const char *acGroup)
+std::vector<char> HistSectionName(const char* fieldName)
 {
-	return carray_cat<char>("hist-", acGroup);
+    return carray_cat<char>("hist-", fieldName);
 }
 
-HistCollect* HistGetList(const char *histGroup)
+HistCollect* HistGetList(const char* fieldName)
 {
-    if (!histGroup || !histGroup[0])
+    if (!fieldName || !fieldName[0])
     {
         return 0;
     }
@@ -40,29 +42,34 @@ HistCollect* HistGetList(const char *histGroup)
 	{
         std::vector<std::string> list;
         clPtr<HistCollect> pUList = new HistCollect;
-        LoadStringList(HistSectionName(histGroup).data(), list);
+        LoadStringList(HistSectionName(fieldName).data(), list);
 
         const int n = list.size();
 		for (int i = 0; i < n; i++)
 		{
             if (list[i].data() && list[i][0])
+            {
                 pUList->append(utf8_to_unicode(list[i].data()));
+            }
 		}
 
-		histHash[histGroup] = pUList;
+        histHash[fieldName] = pUList;
 	}
 	
-    clPtr<HistCollect>* pp = histHash.exist(histGroup);
-	if (pp && pp->ptr()) return pp->ptr();
+    clPtr<HistCollect>* pp = histHash.exist(fieldName);
+    if (pp && pp->ptr())
+    {
+        return pp->ptr();
+    }
 
     clPtr<HistCollect> pUList = new HistCollect;
 	HistCollect *pList = pUList.ptr();
-	histHash[histGroup] = pUList;
+    histHash[fieldName] = pUList;
 
 	return pList;
 }
 
-static bool HistStrcmp(const unicode_t *a, const unicode_t *b)
+bool HistStrcmp(const unicode_t* a, const unicode_t* b)
 {
     while (*a && *b && *a == *b)
     {
@@ -83,9 +90,9 @@ static bool HistStrcmp(const unicode_t *a, const unicode_t *b)
     return (!*a && !*b);
 }
 
-static void HistCommit(const char *histGroup, const unicode_t *txt)
+void HistCommit(const char* fieldName, const unicode_t* txt)
 {
-    if (!histGroup || !histGroup[0])
+    if (!fieldName || !fieldName[0])
     {
         return;
     }
@@ -95,7 +102,7 @@ static void HistCommit(const char *histGroup, const unicode_t *txt)
         return;
     }
 
-	HistCollect *pList = HistGetList(histGroup);
+    HistCollect *pList = HistGetList(fieldName);
     clPtr<HistCollect> pUList = new HistCollect;
 	pUList->append( new_unicode_str(txt) );
 
@@ -109,7 +116,7 @@ static void HistCommit(const char *histGroup, const unicode_t *txt)
     }
 
 	pList = pUList.ptr();
-	histHash[histGroup] = pUList;
+    histHash[fieldName] = pUList;
 
 	if (HistoryCanSave())
 	{
@@ -126,7 +133,7 @@ static void HistCommit(const char *histGroup, const unicode_t *txt)
             list.push_back(unicode_to_utf8_string(pList->get(i).data()));
         }
 
-        SaveStringList(HistSectionName(histGroup).data(), list);
+        SaveStringList(HistSectionName(fieldName).data(), list);
 	}
 }
 
@@ -137,11 +144,11 @@ int NCEditLine::UiGetClassId()
 	return uiClassNCEditLine;
 }
 
-NCEditLine::NCEditLine(const char *acGroup, int nId, Win *parent, const unicode_t *txt, 
-        int cols, int rows, bool up, bool frame3d, bool nofocusframe, crect *rect)
+NCEditLine::NCEditLine(const char* fieldName, int nId, Win* parent, const unicode_t* txt,
+        int cols, int rows, bool up, bool frame3d, bool nofocusframe, crect* rect)
     : ComboBox(nId, parent, cols, rows, (up ? ComboBox::MODE_UP: 0) | (frame3d ? ComboBox::FRAME3D : 0) | (nofocusframe ? ComboBox::NOFOCUSFRAME : 0), rect)
-    , _group(acGroup)
-    , _autoMode(false)
+    , m_fieldName(fieldName)
+    , m_autoMode(false)
 {
 }
 
@@ -153,18 +160,18 @@ void NCEditLine::Clear()
 	SetText(&s0);
 }
 
-bool NCEditLine::Command(int id, int subId, Win *win, void *d)
+bool NCEditLine::Command(int id, int subId, Win* win, void* d)
 {
 	if (IsEditLine(win))
 	{
 		if (AcEnabled())
 		{
-            if (IsBoxOpened() && !_autoMode)
+            if (IsBoxOpened() && !m_autoMode)
             {
                 return false;
             }
 
-            if (!_histList.ptr())
+            if (!m_histList.ptr())
             {
                 LoadHistoryList();
             }
@@ -179,9 +186,9 @@ bool NCEditLine::Command(int id, int subId, Win *win, void *d)
                 u++;
             }
 
-			if (ComboBox::Count() > 0 && *u) 
+			if (Count() > 0 && *u)
 			{
-				_autoMode = true;
+                m_autoMode = true;
 				OpenBox();
             }
             else
@@ -196,7 +203,7 @@ bool NCEditLine::Command(int id, int subId, Win *win, void *d)
 	return ComboBox::Command(id, subId, win, d);
 }
 
-static bool AcEqual(const unicode_t *txt, const unicode_t *element)
+bool AcEqual(const unicode_t* txt, const unicode_t* element)
 {
     if (!txt)
     {
@@ -217,67 +224,69 @@ static bool AcEqual(const unicode_t *txt, const unicode_t *element)
     return *txt == 0;
 }
 
-void NCEditLine::SetCBList(const unicode_t *txt)
+void NCEditLine::SetCBList(const unicode_t* txt)
 {
-	ComboBox::Clear();
+	Clear();
 	
-    if (!_histList.ptr())
+    if (!m_histList.ptr())
     {
         return;
     }
 	
-    const int n = _histList->count();
+    const int n = m_histList->count();
 	for (int i = 0; i < n; i++)
 	{
-        const unicode_t *u = _histList->get(i).data();
+        const unicode_t *u = m_histList->get(i).data();
         if (u && AcEqual(txt, u))
         {
-            ComboBox::Append(u);
+            Append(u);
         }
 	}
 
-	ComboBox::MoveCurrent(-1);
-	ComboBox::RefreshBox();
+	MoveCurrent(-1);
+	RefreshBox();
 }
 
 void NCEditLine::LoadHistoryList()
 {
-	HistCollect* p = HistGetList(_group);
+    HistCollect* p = HistGetList(m_fieldName);
 	if (p)
     {
-		_histList = new HistCollect;
+        m_histList = new HistCollect;
 		const int n = p->count();
         for (int i = 0; i < n; i++)
         {
-            _histList->append(new_unicode_str(p->get(i).data()));
+            m_histList->append(new_unicode_str(p->get(i).data()));
         }
 	}
 }
 
 bool NCEditLine::OnOpenBox()
 {
-    if (!_group || !_group[0])
+    if (!m_fieldName || !m_fieldName[0])
     {
         return false;
     }
 
-	if (!_histList.ptr())
+    if (!m_histList.ptr())
     {
 		LoadHistoryList();
 	}
 
-    SetCBList(_autoMode ? GetText().data() : 0);
+    SetCBList(m_autoMode ? GetText().data() : 0);
 	return true;
 }
 
 void NCEditLine::OnCloseBox()
 {
-	_autoMode = false;
+    ComboBox::OnCloseBox();
+    
+    m_autoMode = false;
 }
 
-void NCEditLine::Commit()
+void NCEditLine::UpdateHistory()
 {
-    HistCommit(_group, GetText().data());
-	_histList = 0;
+    HistCommit(m_fieldName, GetText().data());
+    
+    m_histList = 0;
 }
-
