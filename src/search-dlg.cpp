@@ -7,6 +7,7 @@
 #include "ncdialogs.h"
 #include "search-dlg.h"
 #include "ltext.h"
+#include "nceditline.h"
 
 class SearchParamDialog: public NCVertDialog
 {
@@ -96,8 +97,8 @@ class SearchFileParamDialog: public NCVertDialog
 public:
 	StaticLabel maskText;
 	StaticLabel textText;
-	EditLine maskEdit;
-	EditLine textEdit;
+	NCEditLine maskEdit;
+    NCEditLine textEdit;
 	SButton  caseButton;
 
 	SearchFileParamDialog( NCDialogParent* parent, SearchAndReplaceParams* params );
@@ -111,8 +112,10 @@ SearchFileParamDialog::SearchFileParamDialog( NCDialogParent* parent, SearchAndR
 	   iL( 16, 3 ),
 	   maskText( 0, this, utf8_to_unicode( _LT( "File &mask:" ) ).data(), &maskEdit ),
 	   textText( 0, this, utf8_to_unicode( _LT( "&Text:" ) ).data(), &textEdit ),
-	   maskEdit( 0, this, 0, 0, 50 ),
-	   textEdit ( 0, this, 0, 0, 50 ),
+       //maskEdit(0, this, 0, 0, 50),
+       maskEdit( "fsearch-mask", 0, this, 0, 50, 7, false, true, false ),
+       //textEdit(0, this, 0, 0, 50),
+       textEdit("fsearch-text", 0, this, 0, 50, 7, false, true, false),
 	   caseButton( 0, this, utf8_to_unicode( _LT( "&Case sensitive" ) ).data(), 0, params->sens )
 {
 	if ( params->mask.data() ) { maskEdit.SetText( params->mask.data(), true ); }
@@ -158,6 +161,8 @@ bool DoFileSearchDialog( NCDialogParent* parent, SearchAndReplaceParams* params 
 		params->sens = dlg.caseButton.IsSet();
 		params->mask = new_unicode_str( dlg.maskEdit.GetText().data() );
 		params->txt = new_unicode_str( dlg.textEdit.GetText().data() );
+        //dlg.maskEdit.UpdateHistory();
+        //dlg.textEdit.UpdateHistory();
 		return true;
 	}
 

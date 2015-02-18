@@ -28,11 +28,17 @@ inline bool AcEnabled()
 
 std::vector<char> HistSectionName(const char* fieldName)
 {
-    return carray_cat<char>("hist-", fieldName);
+    return carray_cat<char>("history-field-", fieldName);
 }
 
 HistCollect* HistGetList(const char* fieldName)
 {
+    HistCollect* list = new HistCollect;
+    list->append(utf8_to_unicode("test"));
+    list->append(utf8_to_unicode("test 2"));
+    list->append(utf8_to_unicode("test 3"));
+    return list;
+
     if (!fieldName || !fieldName[0])
     {
         return 0;
@@ -150,19 +156,46 @@ NCEditLine::NCEditLine(const char* fieldName, int nId, Win* parent, const unicod
     , m_fieldName(fieldName)
     , m_autoMode(false)
 {
+    clPtr<ccollect<std::vector<unicode_t>>> histList = 0;
+
+    if (m_fieldName && m_fieldName[0])
+    {
+        histList = HistGetList(m_fieldName);
+    }
+
+    if (histList.ptr())
+    {
+        const int n = histList->count();
+        for (int i = 0; i < n; i++)
+        {
+            const unicode_t *u = histList->get(i).data();
+            if (u /*&& AcEqual(txt, u)*/)
+            {
+                Append(u);
+            }
+        }
+
+        //MoveCurrent(-1);
+        //RefreshBox();
+    }
+    else
+    {
+        static unicode_t s0 = 0;
+        Append(&s0);
+    }
 }
 
-void NCEditLine::Clear()
-{
-	CloseBox();
-	
-    static unicode_t s0 = 0;
-	SetText(&s0);
-}
-
+//void NCEditLine::Clear()
+//{
+//	CloseBox();
+//	
+//    static unicode_t s0 = 0;
+//	SetText(&s0);
+//}
+//
 bool NCEditLine::Command(int id, int subId, Win* win, void* d)
 {
-	if (IsEditLine(win))
+/*	if (IsEditLine(win))
 	{
 		if (AcEnabled())
 		{
@@ -171,15 +204,9 @@ bool NCEditLine::Command(int id, int subId, Win* win, void* d)
                 return false;
             }
 
-            if (!m_histList.ptr())
-            {
-                LoadHistoryList();
-            }
-
             std::vector<unicode_t> text = GetText();
-
-            SetCBList(text.data());
-
+            //SetCBList(text.data());
+            
             unicode_t *u = text.data();
             while (*u == ' ' || *u == '\t')
             {
@@ -199,7 +226,7 @@ bool NCEditLine::Command(int id, int subId, Win* win, void* d)
 		
         return true;
 	}
-
+    */
 	return ComboBox::Command(id, subId, win, d);
 }
 
@@ -224,56 +251,39 @@ bool AcEqual(const unicode_t* txt, const unicode_t* element)
     return *txt == 0;
 }
 
-void NCEditLine::SetCBList(const unicode_t* txt)
-{
-	Clear();
-	
-    if (!m_histList.ptr())
-    {
-        return;
-    }
-	
-    const int n = m_histList->count();
-	for (int i = 0; i < n; i++)
-	{
-        const unicode_t *u = m_histList->get(i).data();
-        if (u && AcEqual(txt, u))
-        {
-            Append(u);
-        }
-	}
-
-	MoveCurrent(-1);
-	RefreshBox();
-}
-
-void NCEditLine::LoadHistoryList()
-{
-    HistCollect* p = HistGetList(m_fieldName);
-	if (p)
-    {
-        m_histList = new HistCollect;
-		const int n = p->count();
-        for (int i = 0; i < n; i++)
-        {
-            m_histList->append(new_unicode_str(p->get(i).data()));
-        }
-	}
-}
+//void NCEditLine::SetCBList(const unicode_t* txt)
+//{
+//	Clear();
+//	
+//    if (!m_histList.ptr())
+//    {
+//        return;
+//    }
+//	
+//    const int n = m_histList->count();
+//	for (int i = 0; i < n; i++)
+//	{
+//        const unicode_t *u = m_histList->get(i).data();
+//        if (u && AcEqual(txt, u))
+//        {
+//            Append(u);
+//        }
+//	}
+//
+//	MoveCurrent(-1);
+//	RefreshBox();
+//}
 
 bool NCEditLine::OnOpenBox()
 {
-    if (!m_fieldName || !m_fieldName[0])
-    {
-        return false;
-    }
+ //   if (!m_histList.ptr())
+ //   {
+ //       return false;
+	//}
 
-    if (!m_histList.ptr())
-    {
-		LoadHistoryList();
-	}
-
-    SetCBList(m_autoMode ? GetText().data() : 0);
+ //   SetCBList(m_autoMode ? GetText().data() : 0);
+    //MoveCurrent(-1);
+    RefreshBox();
 	return true;
 }
 
@@ -287,6 +297,4 @@ void NCEditLine::OnCloseBox()
 void NCEditLine::UpdateHistory()
 {
     HistCommit(m_fieldName, GetText().data());
-    
-    m_histList = 0;
 }

@@ -17,13 +17,11 @@ using namespace wal;
 class NCEditLine: public ComboBox
 {
 private:
-    clPtr<ccollect<std::vector<unicode_t>>> m_histList;
 	const char* m_fieldName;
 	bool m_autoMode;
 	
-    void SetCBList(const unicode_t* txt);
-	void LoadHistoryList();
-    void Clear();
+    //void SetCBList(const unicode_t* txt);
+    //void Clear();
 
 public:
     NCEditLine(const char* fieldName, int nId, Win* parent, const unicode_t* txt, 
