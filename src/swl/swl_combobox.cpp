@@ -9,7 +9,6 @@
 namespace wal
 {
 
-
 #define CB_BUTTONWIDTH 16
 
 	int uiClassComboBox = GetUiID( "ComboBox" );
@@ -18,7 +17,6 @@ namespace wal
 	{
 		return uiClassComboBox;
 	}
-
 
 	void ComboBox::MoveCurrent( int n )
 	{
@@ -89,9 +87,9 @@ namespace wal
 	void ComboBox::Clear()
 	{
 		if ( _box.ptr() )
-        {
-            _box->Clear();
-        }
+		{
+			_box->Clear();
+		}
 
 		//CloseBox();
 		_list.clear();
@@ -101,9 +99,9 @@ namespace wal
 			_current = -1;
 
 			if ( IsVisible() )
-            {
-                Invalidate();
-            }
+			{
+				Invalidate();
+			}
 		}
 	}
 
@@ -136,9 +134,9 @@ namespace wal
 	void ComboBox::SetText( const unicode_t* txt, bool mark )
 	{
 		if ( this->_flags & READONLY )
-        {
-            return;
-        }
+		{
+			return;
+		}
 
 		_edit.SetText( txt, mark );
 		MoveCurrent( -1 );
@@ -147,9 +145,9 @@ namespace wal
 	void ComboBox::InsertText( unicode_t t )
 	{
 		if ( this->_flags & READONLY )
-        {
-            return;
-        }
+		{
+			return;
+		}
 
 		_edit.Insert( t );
 	}
@@ -157,13 +155,12 @@ namespace wal
 	void ComboBox::InsertText( const unicode_t* txt )
 	{
 		if ( this->_flags & READONLY )
-        {
-            return;
-        }
+		{
+			return;
+		}
 
 		_edit.Insert( txt );
 	}
-
 
 	void* ComboBox::ItemData( int n )
 	{
@@ -189,15 +186,15 @@ namespace wal
 
 			return true;
 		}
-        
+
 		if ( win == &_edit && _current != -1 )
 		{
 			_current = -1;
 
 			if ( _box )
-            {
-                _box->SetNoCurrent();
-            }
+			{
+				_box->SetNoCurrent();
+			}
 
 			Command( CMD_ITEM_CHANGED, _current, this, 0 );
 			return true;
@@ -211,67 +208,73 @@ namespace wal
 		_edit.EventFocus( recv );
 
 		if ( !recv && _box.ptr() )
-        {
-            CloseBox();
-        }
+		{
+			CloseBox();
+		}
 
 		Invalidate();
 		return true;
 	}
 
-    bool ComboBox::EventKey(cevent_key* pEvent)
+	bool ComboBox::EventKey( cevent_key* pEvent )
 	{
 		if ( pEvent->Type() == EV_KEYDOWN )
 		{
-            const bool ctrl = (pEvent->Mod() & KM_CTRL) != 0;
-            
-            switch (pEvent->Key())
+			const bool ctrl = (pEvent->Mod() & KM_CTRL) != 0;
+
+			switch ( pEvent->Key() )
 			{
-				case VK_ESCAPE:
-                    if ( IsBoxOpened() )
-					{
-						CloseBox();
-						return true;
-					}
-					
-                    break;
+			case VK_ESCAPE:
+				if ( IsBoxOpened() )
+				{
+					CloseBox();
+					return true;
+				}
 
-				case VK_RETURN:
-                    if ( IsBoxOpened() )
-					{
-						CloseBox();
-						return _current >= 0;
-					}
-					
-                    break;
+				break;
 
-				case VK_UP:
-                    if ( IsBoxOpened() )
-					{
-						return _box->EventKey( pEvent );
-					}
-					
-                    break;
+			case VK_RETURN:
+				if ( IsBoxOpened() )
+				{
+					CloseBox();
+					return _current >= 0;
+				}
 
-				case VK_DOWN:
-                    if ( ctrl && !IsBoxOpened() )
-                    {
-                        OpenBox();
-                        return true;
-                    }
+				break;
 
-                    if ( IsBoxOpened() )
-					{
-						return _box->EventKey( pEvent );
-					}
-					
-                    break;
+			case VK_UP:
+				if ( ctrl && !IsBoxOpened() )
+				{
+					OpenBox();
+					return true;
+				}
+
+				if ( IsBoxOpened() )
+				{
+					return _box->EventKey( pEvent );
+				}
+
+				break;
+
+			case VK_DOWN:
+				if ( ctrl && !IsBoxOpened() )
+				{
+					OpenBox();
+					return true;
+				}
+
+				if ( IsBoxOpened() )
+				{
+					return _box->EventKey( pEvent );
+				}
+
+				break;
 			}
 
 			return _edit.EventKey( pEvent );
 		}
 
-        return Win::EventKey(pEvent);
+		return Win::EventKey( pEvent );
 	}
 
 	bool ComboBox::OnOpenBox()
@@ -286,9 +289,9 @@ namespace wal
 	void ComboBox::RefreshBox()
 	{
 		if ( !_box.ptr() )
-        {
-            return;
-        }
+		{
+			return;
+		}
 
 		_box->Clear();
 
@@ -303,16 +306,16 @@ namespace wal
 	void ComboBox::OpenBox()
 	{
 		if ( _box.ptr() )
-        {
-            return;
-        }
+		{
+			return;
+		}
 
 		if ( !OnOpenBox() )
-        {
-            return;
-        }
+		{
+			return;
+		}
 
-        _box = new TextList( Win::WT_POPUP, 0, 0, this, VListWin::SINGLE_SELECT, VListWin::SINGLE_BORDER, 0 );
+		_box = new TextList( Win::WT_POPUP, 0, 0, this, VListWin::SINGLE_SELECT, VListWin::SINGLE_BORDER, 0 );
 
 		for ( int i = 0; i < _list.count(); i++ )
 		{
@@ -320,22 +323,22 @@ namespace wal
 		}
 
 		if ( _current >= 0 )
-        {
-            _box->MoveCurrent( _current );
-        }
+		{
+			_box->MoveCurrent( _current );
+		}
 
 		_box->SetHeightRange( LSRange( _rows, _rows, _rows ) );
 
 		int width = ClientRect().Width();
 		if ( width < 20 )
-        {
-            width = 20;
-        }
+		{
+			width = 20;
+		}
 
-        _box->Show(Win::SHOW_INACTIVE);
-        _box->Enable();
-        
-        LSize ls;
+		_box->Show( Win::SHOW_INACTIVE );
+		_box->Enable();
+
+		LSize ls;
 		_box->GetLSize( &ls );
 
 		crect rect = this->ScreenRect();
@@ -358,9 +361,9 @@ namespace wal
 	void ComboBox::CloseBox()
 	{
 		if ( IsCaptured() )
-        {
-            ReleaseCapture( &captureSD );
-        }
+		{
+			ReleaseCapture( &captureSD );
+		}
 
 		if ( _box.ptr() )
 		{
