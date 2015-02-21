@@ -351,8 +351,8 @@ namespace wal
 		unsigned keyMods;
 	public:
 		cevent_input( int t, unsigned km ): cevent( t ), keyMods( km ) {}
-		unsigned Mod() { return keyMods & (KM_ALT|KM_CTRL|KM_SHIFT); }
-		unsigned ExtMod() { return keyMods; }
+		unsigned Mod() const { return keyMods & (KM_ALT|KM_CTRL|KM_SHIFT); }
+		unsigned ExtMod() const { return keyMods; }
 		virtual ~cevent_input();
 	};
 

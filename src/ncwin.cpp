@@ -58,9 +58,60 @@
 
 #include <map>
 #include <vector>
+#include <mutex>
 
 std::map<std::vector<unicode_t>, sEditorScrollCtx> g_EditPosHash;
 std::map<std::vector<unicode_t>, int> g_ViewPosHash;
+
+namespace {
+	using KeyMap = std::map<unsigned, unsigned>;
+	using KeyMaps = std::map<NCWin::MODE, KeyMap>;
+	KeyMaps keyMaps;
+	std::once_flag keyMapsInitFlag;
+
+	void initKeyMap()
+	{
+		std::call_once(keyMapsInitFlag, [&]() {
+			// Panel
+		//	keyMaps[NCWin::MODE::PANEL][VK_V] = VK_F3;	// 'V' -> VK_F3
+
+			// Text Viewer
+			keyMaps[NCWin::MODE::VIEW][VK_LEFT] = VK_PRIOR;	// Left -> PageUp
+			keyMaps[NCWin::MODE::VIEW][VK_RIGHT] = VK_NEXT;	// Right -> PageDown
+		});
+	}
+}
+
+unsigned NCWin::remapKey( NCWin::MODE mode, unsigned key )
+{
+	const auto it0 = keyMaps.find( mode );
+	if ( it0 != keyMaps.end() )
+	{
+		const auto& keymap = it0->second;
+		const auto it1 = keymap.find( key );
+		if( it1 != keymap.end() )
+		{
+			key = it1->second;
+		}
+	}
+	return key;
+}
+
+cevent_key NCWin::remapKey( NCWin::MODE mode, const cevent_key& key )
+{
+	const int Key = key.Key();
+	const int Mod = key.Mod();
+	const unsigned FullKey0 = ( Key & 0xFFFF ) + ( Mod << 16 );
+	auto newkey = remapKey( mode, FullKey0 );
+	return cevent_key {
+		key.Type(),
+		static_cast<int>(newkey & 0xFFFF),
+		(newkey >> 16) & 0xFFFFU,
+		key.Count(),
+		key.Char(),
+		key.IsFromMouseWheel()
+	};
+}
 
 const int CMD_SWITCH = 32167;
 
@@ -694,6 +745,8 @@ NCWin::NCWin()
 
 	_leftPanel.LoadPathStringSafe( g_WcmConfig.leftPanelPath.data() );
 	_rightPanel.LoadPathStringSafe( g_WcmConfig.rightPanelPath.data() );
+
+	initKeyMap();
 }
 
 bool NCWin::EventClose()
@@ -3413,7 +3466,8 @@ bool NCWin::OnKeyDown( Win* w, cevent_key* pEvent, bool pressed )
 
 	const int Key = pEvent->Key();
 	const int Mod = pEvent->Mod();
-	const unsigned FullKey = ( Key & 0xFFFF ) + ( Mod << 16 );
+	const unsigned FullKey0 = ( Key & 0xFFFF ) + ( Mod << 16 );
+	const unsigned FullKey = remapKey( _mode, FullKey0 );
 
 	const bool shift = ( Mod & KM_SHIFT ) != 0;
 

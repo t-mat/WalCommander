@@ -1913,9 +1913,12 @@ void ViewWin::EventSize( cevent_size* pEvent )
 	CalcSize();
 }
 
-bool ViewWin::EventKey( cevent_key* pEvent )
+bool ViewWin::EventKey( cevent_key* pEvent_ )
 {
 	if ( !threadData ) { return false; } //!!!
+
+	cevent_key tempEvent = NCWin::remapKey ( NCWin::VIEW, *pEvent_);
+	const auto* pEvent = &tempEvent;
 
 	if ( pEvent->Type() == EV_KEYDOWN )
 	{
