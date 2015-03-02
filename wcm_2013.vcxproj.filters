@@ -71,7 +71,6 @@
     <ClCompile Include="src/wal\wal_sys_api.cpp" />
     <ClCompile Include="src/wal\wal_tmpls.cpp" />
     <ClCompile Include="src/wcm-config.cpp" />
-    <ClCompile Include="src/wal\IntrusivePtr.h" />
     <ClCompile Include="src/strmasks.cpp" />
     <ClCompile Include="src/dlg-ctrl-l.cpp" />
     <ClCompile Include="src/usermenu.cpp" />
@@ -81,6 +80,112 @@
     <ClCompile Include="src\folder-shortcuts.cpp" />
     <ClCompile Include="src\path-list.cpp" />
     <ClCompile Include="src\nceditline.cpp" />
+    <ClCompile Include="src/wal\IntrusivePtr.h" />
+    <ClCompile Include="deps\lua\src\lapi.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lcode.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lctype.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\ldebug.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\ldo.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\ldump.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lfunc.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lgc.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\llex.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lmem.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lobject.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lopcodes.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lparser.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lstate.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lstring.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\ltable.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\ltm.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lundump.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lvm.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lzio.c">
+      <Filter>deps\Lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lauxlib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lbaselib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lbitlib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lcorolib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\ldblib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\liolib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lmathlib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\loslib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lstrlib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\ltablib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\lutf8lib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\linit.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\lua\src\loadlib.c">
+      <Filter>deps\Lua\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\tlsf\tlsf.c">
+      <Filter>deps\tlsf</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lua\lua_wrapper.cpp">
+      <Filter>lua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/charsetdlg.h" />
@@ -144,19 +249,112 @@
     <ClInclude Include="src/vfs/vfs-tmp.h" />
     <ClInclude Include="src/w32cons.h" />
     <ClInclude Include="src/w32util.h" />
-    <ClInclude Include="src/wal\wal.h" />
-    <ClInclude Include="src/wal\wal_sys_api.h" />
-    <ClInclude Include="src/wal\wal_tmpls.h" />
     <ClInclude Include="src/wcm-config.h" />
     <ClInclude Include="src/strmasks.h" />
     <ClInclude Include="src/usermenu.h" />
-    <ClInclude Include="src\urlparser\LUrlParser.h" />
-    <ClInclude Include="src\folder-history.h" />
     <ClInclude Include="src\folder-shortcuts.h" />
     <ClInclude Include="src\path-list.h" />
     <ClInclude Include="src\nceditline.h" />
+    <ClInclude Include="src/wal/wal.h" />
+    <ClInclude Include="src/wal/wal_sys_api.h" />
+    <ClInclude Include="src/wal/wal_tmpls.h" />
+    <ClInclude Include="src/urlparser/LUrlParser.h" />
+    <ClInclude Include="src/folder-history.h" />
+    <ClInclude Include="src/path-list.h" />
+    <ClInclude Include="deps\lua\src\lapi.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lcode.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lctype.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\ldebug.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\ldo.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lfunc.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lgc.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\llex.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lmem.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lobject.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lopcodes.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lparser.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lstate.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lstring.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\ltable.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\ltm.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lundump.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lvm.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lzio.h">
+      <Filter>deps\Lua\core</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\lua\src\lauxlib.h">
+      <Filter>deps\Lua\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\tlsf\tlsf.h">
+      <Filter>deps\tlsf</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\tlsf\tlsfbits.h">
+      <Filter>deps\tlsf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lua\lua_wrapper.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lua\tlsf_wrapper.h">
+      <Filter>lua</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src/wcm.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="deps">
+      <UniqueIdentifier>{1caaff2f-6340-4405-aab6-8236c269c925}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\Lua">
+      <UniqueIdentifier>{4c4ed0dc-c5ad-43bb-933b-732eda900633}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\Lua\core">
+      <UniqueIdentifier>{9941e567-fdbc-4d36-8550-0ac38c5c35f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\Lua\lib">
+      <UniqueIdentifier>{62cc3363-c6d0-4d02-850b-c663ca6a0e31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\tlsf">
+      <UniqueIdentifier>{546085f0-84bf-42fc-8b12-3bb9992fe34c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lua">
+      <UniqueIdentifier>{891b6efa-6bf1-4255-ad48-35ab187a6c45}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
