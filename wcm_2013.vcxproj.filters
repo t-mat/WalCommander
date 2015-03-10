@@ -184,6 +184,9 @@
       <Filter>deps\tlsf</Filter>
     </ClCompile>
     <ClCompile Include="src\lua\lua_wrapper.cpp">
+      <Filter>lua\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lua\lua_wal_ncwin.cpp">
       <Filter>lua</Filter>
     </ClCompile>
   </ItemGroup>
@@ -328,10 +331,10 @@
       <Filter>deps\tlsf</Filter>
     </ClInclude>
     <ClInclude Include="src\lua\lua_wrapper.h">
-      <Filter>lua</Filter>
+      <Filter>lua\core</Filter>
     </ClInclude>
     <ClInclude Include="src\lua\tlsf_wrapper.h">
-      <Filter>lua</Filter>
+      <Filter>lua\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -355,6 +358,9 @@
     </Filter>
     <Filter Include="lua">
       <UniqueIdentifier>{891b6efa-6bf1-4255-ad48-35ab187a6c45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lua\core">
+      <UniqueIdentifier>{b840c9c8-8327-4454-a00c-2e99ba24cd3c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -393,9 +393,6 @@ public:
 	void DecreaseFontSize( MODE Mode );
 	void AdjustFontSize( std::string* FontURI, float Coef );
 
-	static unsigned remapKey( NCWin::MODE mode, unsigned key );
-	static cevent_key remapKey( NCWin::MODE mode, const cevent_key& key );
-
 private:
 	bool ProcessCommand_CD( const unicode_t* cmd );
 	bool ProcessCommand_CLS( const unicode_t* cmd );

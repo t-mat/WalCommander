@@ -304,6 +304,7 @@
     <ClCompile Include="src/wal\wal_tmpls.cpp" />
     <ClCompile Include="src/wcm-config.cpp" />
     <ClCompile Include="src\nceditline.cpp" />
+    <ClCompile Include="src\lua\lua_wal_ncwin.cpp" />
     <ClCompile Include="src\lua\lua_wrapper.cpp" />
     <ClCompile Include="src\urlparser\LUrlParser.cpp" />
     <ClCompile Include="src\folder-history.cpp" />

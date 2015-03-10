@@ -2,6 +2,7 @@
 
 class Tlsf;
 struct lua_State;
+struct luaL_Reg;
 
 #if !defined(LUA_WRAPPER_NS)
 #  define LUA_WRAPPER_NS lua
@@ -23,6 +24,9 @@ namespace LUA_WRAPPER_NS {
 		using luaFunction = int(*)(lua_State *L);
 		void registerFunction(const char* name, luaFunction f);
 		int pcall(int nargs, int nresults, int msgh);
+
+		void registerLibs(const luaL_Reg* libs, size_t libsCount);
+		int eval(const char* luaScriptString);
 
 	protected:
 		static StateBase* getThat(lua_State* ls);
@@ -51,3 +55,7 @@ namespace LUA_WRAPPER_NS {
 		Tlsf* tlsf;
 	};
 }
+
+void initKeyMap();
+unsigned remapKey(unsigned mode, unsigned key);
+wal::cevent_key remapKey(unsigned mode, const wal::cevent_key& key );

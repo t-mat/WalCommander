@@ -1,6 +1,11 @@
 #include <functional>
+#include "ncwin.h"
+#include "IntrusivePtr.h"
+#include "swl_wincore.h"
+
 extern "C" {
 #include "../deps/lua/src/lua.h"
+#include "../deps/lua/src/lauxlib.h"
 }
 #include "lua_wrapper.h"
 #include "tlsf_wrapper.h"
@@ -66,6 +71,23 @@ void LUA_WRAPPER_NS::StateBase::registerFunction(const char* name, lua_CFunction
 
 int LUA_WRAPPER_NS::StateBase::pcall(int nargs, int nresults, int msgh) {
 	return lua_pcall(lua.L, nargs, nresults, msgh);
+}
+
+void LUA_WRAPPER_NS::StateBase::registerLibs(const luaL_Reg* libs, size_t libsCount) {
+	for(size_t i = 0; i < libsCount; ++i)
+	{
+		const auto& lib = libs[i];
+		luaL_requiref(lua.L, lib.name, lib.func, 1);
+		lua_pop(lua.L, 1);
+	}
+}
+
+int LUA_WRAPPER_NS::StateBase::eval(const char* luaScriptString) {
+	int result = -1;
+	if(loadString(luaScriptString) == LUA_OK) {
+		result = pcall(0, LUA_MULTRET, 0);
+	}
+	return result;
 }
 
 LUA_WRAPPER_NS::StateBase* LUA_WRAPPER_NS::StateBase::getThat(lua_State* ls) {

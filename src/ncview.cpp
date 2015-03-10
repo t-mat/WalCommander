@@ -13,6 +13,7 @@
 #include "search-tools.h"
 #include "charsetdlg.h"
 #include "ltext.h"
+#include "lua/lua_wrapper.h"
 
 #ifdef _WIN32
 #include <time.h>
@@ -1917,7 +1918,7 @@ bool ViewWin::EventKey( cevent_key* pEvent_ )
 {
 	if ( !threadData ) { return false; } //!!!
 
-	cevent_key tempEvent = NCWin::remapKey ( NCWin::VIEW, *pEvent_);
+	cevent_key tempEvent = remapKey ( NCWin::VIEW, *pEvent_);
 	const auto* pEvent = &tempEvent;
 
 	if ( pEvent->Type() == EV_KEYDOWN )
